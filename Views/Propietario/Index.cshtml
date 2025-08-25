@@ -1,0 +1,36 @@
+@model IEnumerable<_net_integrador.Models.Propietario>
+@{
+    ViewData["Title"] = "Propietarios";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Lista de Propietarios</h1>
+</div>
+
+<table>
+    <thread>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model=> model.nombre)
+            </th>
+        </tr>
+    </thread>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.id)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem=> item.nombre)
+                </td>
+                <td>
+                    @Html.ActionLink("Editar","Edit",new {id=item.id}) |
+                    @Html.ActionLink("Detalles","Detail",new {id=item.id}) |
+                    @Html.ActionLink("Eliminar","Delete",new {id=item.id}) 
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
