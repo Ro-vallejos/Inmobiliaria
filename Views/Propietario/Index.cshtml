@@ -2,35 +2,50 @@
 @{
     ViewData["Title"] = "Propietarios";
 }
+@if (TempData["Exito"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Exito"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
 
 <div class="text-center">
     <h1 class="display-4">Lista de Propietarios</h1>
 </div>
 
-<table>
-    <thread>
+<p>
+     <a class="btn btn-success" asp-action="Agregar">Agregar Propietario</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model=> model.nombre)
-            </th>
+            <th>Código</th>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>Email</th>
+            <th>Teléfono</th>
+            <th>Acciones</th>
         </tr>
-    </thread>
+    </thead>
     <tbody>
-        @foreach (var item in Model)
+        @foreach (var p in Model)
         {
-            <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.id)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem=> item.nombre)
-                </td>
-                <td>
-                    @Html.ActionLink("Editar","Edit",new {id=item.id}) |
-                    @Html.ActionLink("Detalles","Detail",new {id=item.id}) |
-                    @Html.ActionLink("Eliminar","Delete",new {id=item.id}) 
-                </td>
-            </tr>
+            if (p.estado==1) 
+            {
+                <tr>
+                    <td>@p.id</td>
+                    <td>@p.nombre</td>
+                    <td>@p.apellido</td>
+                    <td>@p.email</td>
+                    <td>@p.telefono</td>
+                    <td>
+                        @Html.ActionLink("Editar", "Editar", new { id = p.id }, new { @class = "btn btn-primary btn-sm" })
+                        @Html.ActionLink("Eliminar", "Eliminar", new { id = p.id }, new { @class = "btn btn-danger btn-sm", onclick = "return confirm('¿Seguro que querés eliminar este propietario?');" })
+                    </td>
+                </tr>
+            }
         }
     </tbody>
 </table>
