@@ -1,0 +1,51 @@
+@model IEnumerable<_net_integrador.Models.Inquilino>
+@{
+    ViewData["Title"] = "Inquilinos";
+}
+@if (TempData["Exito"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Exito"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="text-center">
+    <h1 class="display-4">Lista de Inquilinos</h1>
+</div>
+
+<p>
+    <a class="btn btn-success" asp-action="Agregar">Agregar Inquilino</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Código</th>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>Email</th>
+            <th>Teléfono</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var i in Model)
+        {
+            if (i.estado == 1)
+            {
+                <tr>
+                    <td>@i.id</td>
+                    <td>@i.nombre</td>
+                    <td>@i.apellido</td>
+                    <td>@i.email</td>
+                    <td>@i.telefono</td>
+                    <td>
+                        @Html.ActionLink("Editar", "Editar", new { id = i.id }, new { @class = "btn btn-primary btn-sm" })
+                        @Html.ActionLink("Eliminar", "Eliminar", new { id = i.id }, new { @class = "btn btn-danger btn-sm", onclick = "return confirm('¿Seguro que querés eliminar este inquilino?');" })
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
