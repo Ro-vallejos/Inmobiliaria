@@ -72,7 +72,7 @@ public class RepositorioPropietario
     {
         using (MySqlConnection connection = new MySqlConnection(ConnectionString))
         {
-            var sql = "UPDATE propietario SET nombre = @nombre, apellido = @apellido, dni = @dni, email = @email, telefono = @telefono, estado = @estado WHERE id = @id";
+            var sql = "UPDATE propietario SET nombre = @nombre, apellido = @apellido, dni = @dni, email = @email, telefono = @telefono WHERE id = @id";
             using (MySqlCommand command = new MySqlCommand(sql, connection))
             {
                 connection.Open();
@@ -82,8 +82,6 @@ public class RepositorioPropietario
                 command.Parameters.AddWithValue("@dni", propietario.dni);
                 command.Parameters.AddWithValue("@email", propietario.email);
                 command.Parameters.AddWithValue("@telefono", propietario.telefono);
-                //command.Parameters.AddWithValue("@password", propietario.password);
-                command.Parameters.AddWithValue("@estado", propietario.estado);
                 command.ExecuteNonQuery();
                 connection.Close();
             }

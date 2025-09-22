@@ -31,6 +31,10 @@ public class PropietarioController : Controller
     public IActionResult Editar(int id)
     {
         var propietarioSeleccionado = propietario.ObtenerPropietarioId(id);
+        if (propietario == null)
+        {
+            return NotFound();
+        }
         return View(propietarioSeleccionado);
     }
  
@@ -42,11 +46,33 @@ public class PropietarioController : Controller
     [HttpPost]
     public IActionResult Editar(Propietario propietario)
     {
-        var repo = new RepositorioPropietario();
-        TempData["Exito"] = "Datos guardados con éxito";
-        repo.ActualizarPropietario(propietario);
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+        else
+        {
+            
+            try
+            {
+                var propietarioOriginal = new RepositorioPropietario().ObtenerPropietarioId(propietario.id);
+                propietarioOriginal.nombre = propietario.nombre;
+                propietarioOriginal.apellido = propietario.apellido;
+                propietarioOriginal.dni = propietario.dni;
+                propietarioOriginal.email = propietario.email;
+                propietarioOriginal.telefono = propietario.telefono;
+                
+                var repo = new RepositorioPropietario();
+                TempData["Exito"] = "Datos guardados con éxito";
+                repo.ActualizarPropietario(propietarioOriginal);
 
-        return RedirectToAction("Index");
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+    }
     }
 
   [HttpPost]
