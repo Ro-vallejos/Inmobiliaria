@@ -1,0 +1,43 @@
+@model _net_integrador.Models.Inmueble
+
+@{
+    ViewData["Title"] = "Nuevo Inmueble";
+}
+
+<h2>Agregar Inmueble</h2>
+
+<form asp-action="Agregar" method="post">
+    <div class="form-group">
+        @Html.LabelFor(m => m.id_propietario)
+        @Html.TextBoxFor(m => m.id_propietario, new { @class = "form-control" })
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.direccion)
+        @Html.TextBoxFor(m => m.direccion, new { @class = "form-control" })
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.uso)
+        @Html.TextBoxFor(m => m.uso, new { @class = "form-control" })
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.id_tipo)
+        @Html.TextBoxFor(m => m.id_tipo, new { @class = "form-control" })
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.ambientes)
+        @Html.TextBoxFor(m => m.ambientes, new { @class = "form-control" })
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.eje_x)
+        @Html.TextBoxFor(m => m.eje_x, new { @class = "form-control" })
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.eje_y)
+        @Html.TextBoxFor(m => m.eje_y, new { @class = "form-control" })
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.precio)
+        @Html.TextBoxFor(m => m.precio, new { @class = "form-control" })
+    </div>
+    <button type="submit" class="btn btn-primary">Guardar</button>
+</form>

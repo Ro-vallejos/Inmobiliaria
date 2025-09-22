@@ -1,0 +1,36 @@
+@model IEnumerable<_net_integrador.Models.TipoInmueble>
+
+@{
+    ViewData["Title"] = "Tipos de Inmueble";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Gestión de Tipos de Inmuebles</h1>
+</div>
+
+<p>
+    <a class="btn btn-success" asp-action="Agregar">Agregar Tipo</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Código</th>
+            <th>Tipo</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var t in Model)
+        {
+            <tr>
+                <td>@t.id</td>
+                <td>@t.tipo</td>
+                <td>
+                    @Html.ActionLink("Editar", "Editar", new { id = t.id }, new { @class = "btn btn-primary btn-sm" })
+                    @Html.ActionLink("Eliminar", "Eliminar", new { id = t.id }, new { @class = "btn btn-danger btn-sm", onclick = "return confirm('¿Seguro que querés eliminar este tipo de inmueble?');" })
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

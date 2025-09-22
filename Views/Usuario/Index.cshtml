@@ -1,0 +1,45 @@
+@model IEnumerable<_net_integrador.Models.Usuario>
+
+@{
+    ViewData["Title"] = "Usuarios";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Lista de Usuarios</h1>
+</div>
+
+<p>
+    <a class="btn btn-success" asp-action="Agregar">Agregar Usuario</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Código</th>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>Email</th>
+            <th>Rol</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var u in Model)
+        {
+            if (u.estado == 1)
+            {
+                <tr>
+                    <td>@u.id</td>
+                    <td>@u.nombre</td>
+                    <td>@u.apellido</td>
+                    <td>@u.email</td>
+                    <td>@u.rol</td>
+                    <td>
+                        @Html.ActionLink("Editar", "Editar", new { id = u.id }, new { @class = "btn btn-primary btn-sm" })
+                        @Html.ActionLink("Eliminar", "Eliminar", new { id = u.id }, new { @class = "btn btn-danger btn-sm", onclick = "return confirm('¿Seguro que querés eliminar este usuario?');" })
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

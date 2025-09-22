@@ -1,0 +1,35 @@
+@model _net_integrador.Models.Contrato
+
+@{
+    ViewData["Title"] = "Nuevo Contrato";
+}
+
+<h2>Agregar Contrato</h2>
+
+<form asp-action="Agregar" method="post">
+    <div class="form-group">
+        @Html.LabelFor(m => m.id_inquilino)
+        @Html.TextBoxFor(m => m.id_inquilino, new { @class = "form-control" })
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.id_inmueble)
+        @Html.TextBoxFor(m => m.id_inmueble, new { @class = "form-control" })
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.monto)
+        @Html.TextBoxFor(m => m.monto, new { @class = "form-control" })
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.fecha_inicio)
+        @Html.TextBoxFor(m => m.fecha_inicio, new { @class = "form-control", type = "date" })
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.fecha_fin)
+        @Html.TextBoxFor(m => m.fecha_fin, new { @class = "form-control", type = "date" })
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.incremento)
+        @Html.TextBoxFor(m => m.incremento, new { @class = "form-control" })
+    </div>
+    <button type="submit" class="btn btn-primary">Guardar</button>
+</form>

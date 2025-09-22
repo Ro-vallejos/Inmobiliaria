@@ -1,0 +1,44 @@
+@model IEnumerable<_net_integrador.Models.Contrato>
+
+@{
+    ViewData["Title"] = "Contratos";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Lista de Contratos</h1>
+</div>
+
+<p>
+    <a class="btn btn-success" asp-action="Agregar">Agregar Contrato</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Código</th>
+            <th>Inquilino</th>
+            <th>Inmueble</th>
+            <th>Monto</th>
+            <th>Fecha Inicio</th>
+            <th>Fecha Fin</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var c in Model)
+        {
+            <tr>
+                <td>@c.id</td>
+                <td>@c.Inquilino.nombre @c.Inquilino.apellido</td>
+                <td>@c.Inmueble.direccion</td>
+                <td>@c.monto.ToString("C")</td>
+                <td>@c.fecha_inicio.ToShortDateString()</td>
+                <td>@c.fecha_fin.ToShortDateString()</td>
+                <td>
+                    @Html.ActionLink("Detalles", "Detalles", new { id = c.id }, new { @class = "btn btn-info btn-sm" })
+                    @Html.ActionLink("Terminar Anticipado", "TerminarAnticipado", new { id = c.id }, new { @class = "btn btn-warning btn-sm" })
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

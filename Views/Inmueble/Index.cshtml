@@ -1,0 +1,52 @@
+@model IEnumerable<_net_integrador.Models.Inmueble>
+
+@{
+    ViewData["Title"] = "Inmuebles";
+}
+
+@if (TempData["Exito"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Exito"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="text-center">
+    <h1 class="display-4">Lista de Inmuebles</h1>
+</div>
+
+<p>
+    <a class="btn btn-success" asp-action="Agregar">Agregar Inmueble</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Código</th>
+            <th>Dirección</th>
+            <th>Uso</th>
+            <th>Tipo</th>
+            <th>Precio</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var i in Model)
+        {
+            <tr>
+                <td>@i.id</td>
+                <td>@i.direccion</td>
+                <td>@i.uso</td>
+                <td>@i.id_tipo</td>
+                <td>@i.precio.ToString("C")</td>
+                <td>@(i.estado == 1 ? "Disponible" : "Suspendido")</td>
+                <td>
+                    @Html.ActionLink("Editar", "Editar", new { id = i.id }, new { @class = "btn btn-primary btn-sm" })
+                    @Html.ActionLink("Suspender", "Suspender", new { id = i.id }, new { @class = "btn btn-warning btn-sm", onclick = "return confirm('¿Seguro que querés suspender este inmueble?');" })
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

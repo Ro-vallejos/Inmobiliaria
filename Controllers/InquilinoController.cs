@@ -16,27 +16,24 @@ namespace _net_integrador.Controllers
             _logger = logger;
         }
 
-        // GET: /Inquilino
         public IActionResult Index()
         {
             var listaInquilinos = inquilinoRepo.ObtenerInquilinos();
             return View(listaInquilinos);
         }
 
-        // GET: /Inquilino/Agregar
         [HttpGet]
         public IActionResult Agregar()
         {
             return View();
         }
 
-        // POST: /Inquilino/Agregar
         [HttpPost]
         public IActionResult Agregar(Inquilino inquilinoNuevo)
         {
             if (ModelState.IsValid)
             {
-                inquilinoNuevo.estado = 1; // activo por defecto
+                inquilinoNuevo.estado = 1;
                 inquilinoRepo.AgregarInquilino(inquilinoNuevo);
                 TempData["Exito"] = "Inquilino agregado con éxito";
                 return RedirectToAction("Index");
@@ -44,7 +41,6 @@ namespace _net_integrador.Controllers
             return View(inquilinoNuevo);
         }
 
-        // GET: /Inquilino/Editar/5
         [HttpGet]
         public IActionResult Editar(int id)
         {
@@ -53,7 +49,6 @@ namespace _net_integrador.Controllers
             return View(inquilinoSeleccionado);
         }
 
-        // POST: /Inquilino/Editar
         [HttpPost]
         public IActionResult Editar(Inquilino inquilino)
         {
@@ -64,7 +59,6 @@ namespace _net_integrador.Controllers
             return RedirectToAction("Index");
         }
 
-        // GET: /Inquilino/Eliminar/5
         public IActionResult Eliminar(int id)
         {
             inquilinoRepo.EliminarInquilino(id);

@@ -1,0 +1,43 @@
+@model IEnumerable<_net_integrador.Models.Pago>
+
+@{
+    ViewData["Title"] = "Pagos";
+    var contratoId = ViewBag.ContratoId;
+}
+
+<div class="text-center">
+    <h1 class="display-4">Pagos del Contrato #@contratoId</h1>
+</div>
+
+<p>
+    <a class="btn btn-success" asp-action="Agregar" asp-route-contratoId="@contratoId">Agregar Pago</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Código</th>
+            <th>Fecha de Pago</th>
+            <th>Importe</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var p in Model)
+        {
+            <tr>
+                <td>@p.id</td>
+                <td>@p.fecha_pago.ToShortDateString()</td>
+                <td>@p.importe.ToString("C")</td>
+                <td>@(p.estado == 1 ? "Pagado" : "Anulado")</td>
+                <td>
+                    @if (p.estado == 1)
+                    {
+                        @Html.ActionLink("Anular", "Anular", new { id = p.id }, new { @class = "btn btn-danger btn-sm", onclick = "return confirm('¿Seguro que querés anular este pago?');" })
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
