@@ -5,10 +5,8 @@ using Microsoft.Extensions.Configuration;
 
 namespace _net_integrador.Repositorios;
 
-// Ahora la clase RepositorioPago hereda de RepositorioBase e implementa IRepositorioPago
 public class RepositorioPago : RepositorioBase, IRepositorioPago
 {
-    // El constructor ahora recibe la configuración para pasársela a la clase base
     public RepositorioPago(IConfiguration configuration) : base(configuration) { }
 
     public List<Pago> ObtenerPagosPorContrato(int contratoId)

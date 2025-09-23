@@ -12,7 +12,6 @@ public class InmuebleController : Controller
     private readonly IRepositorioInmueble _repositorioInmueble;
     private readonly IRepositorioPropietario _repositorioPropietario;
 
-    // Usamos inyección de dependencias para obtener los repositorios
     public InmuebleController(ILogger<InmuebleController> logger, IRepositorioInmueble repositorioInmueble, IRepositorioPropietario repositorioPropietario)
     {
         _logger = logger;
@@ -29,7 +28,6 @@ public class InmuebleController : Controller
     [HttpGet]
     public IActionResult Agregar()
     {
-        // Obtener la lista de propietarios usando la interfaz
         var propietarios = _repositorioPropietario.ObtenerPropietarios();
         ViewBag.Propietarios = new SelectList(propietarios, "id", "NombreCompleto");
         return View();

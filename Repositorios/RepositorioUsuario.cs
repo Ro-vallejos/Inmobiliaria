@@ -5,10 +5,8 @@ using Microsoft.Extensions.Configuration;
 
 namespace _net_integrador.Repositorios;
 
-// Ahora la clase RepositorioUsuario hereda de RepositorioBase e implementa IRepositorioUsuario
 public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
 {
-    // El constructor ahora recibe la configuración para pasársela a la clase base
     public RepositorioUsuario(IConfiguration configuration) : base(configuration) { }
 
     public List<Usuario> ObtenerUsuarios()

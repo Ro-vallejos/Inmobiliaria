@@ -5,10 +5,8 @@ using Microsoft.Extensions.Configuration;
 
 namespace _net_integrador.Repositorios;
 
-// Ahora la clase RepositorioTipoInmueble hereda de RepositorioBase e implementa IRepositorioTipoInmueble
 public class RepositorioTipoInmueble : RepositorioBase, IRepositorioTipoInmueble
 {
-    // El constructor ahora recibe la configuración para pasársela a la clase base
     public RepositorioTipoInmueble(IConfiguration configuration) : base(configuration) { }
 
     public List<TipoInmueble> ObtenerTiposInmueble()

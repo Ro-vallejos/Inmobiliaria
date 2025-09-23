@@ -2,18 +2,16 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using _net_integrador.Models;
 using _net_integrador.Repositorios;
-using Microsoft.Extensions.Configuration; // Necesario para la configuración
+using Microsoft.Extensions.Configuration; 
 
 namespace _net_integrador.Controllers;
 
 public class ContratoController : Controller
 {
     private readonly ILogger<ContratoController> _logger;
-    // Ahora usamos las interfaces para las dependencias
     private readonly IRepositorioContrato _contratoRepo;
     private readonly RepositorioPago _pagoRepo;
 
-    // Inyectamos las dependencias a través del constructor
     public ContratoController(ILogger<ContratoController> logger, IRepositorioContrato contratoRepo, RepositorioPago pagoRepo)
     {
         _logger = logger;

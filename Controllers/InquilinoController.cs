@@ -10,7 +10,6 @@ namespace _net_integrador.Controllers
         private readonly ILogger<InquilinoController> _logger;
         private readonly IRepositorioInquilino _inquilinoRepo;
 
-        // Inyectamos la interfaz IRepositorioInquilino
         public InquilinoController(ILogger<InquilinoController> logger, IRepositorioInquilino inquilinoRepo)
         {
             _logger = logger;

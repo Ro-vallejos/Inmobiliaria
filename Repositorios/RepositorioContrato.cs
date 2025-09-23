@@ -5,10 +5,8 @@ using Microsoft.Extensions.Configuration;
 
 namespace _net_integrador.Repositorios;
 
-// Ahora la clase RepositorioContrato hereda de RepositorioBase e implementa IRepositorioContrato
 public class RepositorioContrato : RepositorioBase, IRepositorioContrato
 {
-    // El constructor ahora recibe la configuración para pasársela a la clase base
     public RepositorioContrato(IConfiguration configuration) : base(configuration) { }
 
     public List<Contrato> ObtenerContratos()

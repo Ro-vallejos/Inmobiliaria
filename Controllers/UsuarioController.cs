@@ -8,10 +8,8 @@ namespace _net_integrador.Controllers;
 public class UsuarioController : Controller
 {
     private readonly ILogger<UsuarioController> _logger;
-    // Usamos la interfaz del repositorio para habilitar la inyección de dependencias
     private readonly IRepositorioUsuario _usuarioRepo;
 
-    // El constructor ahora recibe la interfaz del repositorio como dependencia
     public UsuarioController(ILogger<UsuarioController> logger, IRepositorioUsuario usuarioRepo)
     {
         _logger = logger;
