@@ -27,7 +27,7 @@ namespace _net_integrador.Repositorios
                         propietario.dni = reader.GetString("dni");
                         propietario.email = reader.GetString("email");
                         propietario.telefono = reader.GetString("telefono");
-                        propietario.password = reader.GetString("password");
+                        propietario.password = reader.IsDBNull(reader.GetOrdinal("password")) ? string.Empty : reader.GetString("password");
                         propietario.estado = reader.GetInt32("estado");
                         propietarios.Add(propietario);
                     }
