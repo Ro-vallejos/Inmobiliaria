@@ -69,7 +69,7 @@ public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
         }
         return usuario;
     }
-    
+
     public void AgregarUsuario(Usuario usuario)
     {
         using (MySqlConnection connection = new MySqlConnection(connectionString))
@@ -84,7 +84,7 @@ public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
                 command.Parameters.AddWithValue("@email", usuario.email);
                 command.Parameters.AddWithValue("@password", usuario.password);
                 command.Parameters.AddWithValue("@rol", usuario.rol);
-                command.Parameters.AddWithValue("@estado", usuario.estado);
+                command.Parameters.AddWithValue("@estado", 1);
                 command.ExecuteNonQuery();
                 connection.Close();
             }
@@ -118,6 +118,8 @@ public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
         using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
             var query = "UPDATE usuario SET estado = 0 WHERE id = @id";
+            // var query = "DELETE FROM usuario WHERE id = @id";
+
             using (var command = new MySqlCommand(query, connection))
             {
                 command.Parameters.AddWithValue("@id", id);
@@ -127,4 +129,19 @@ public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
             }
         }
     }
+    public void ActivarUsuario(int id)
+{
+    using (MySqlConnection connection = new MySqlConnection(connectionString))
+    {
+        var query = "UPDATE usuario SET estado = 1 WHERE id = @id";
+        
+        using (var command = new MySqlCommand(query, connection))
+        {
+            command.Parameters.AddWithValue("@id", id);
+            connection.Open();
+            command.ExecuteNonQuery();
+            connection.Close();
+        }
+    }
+}
 }
