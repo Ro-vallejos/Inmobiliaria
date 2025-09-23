@@ -14,8 +14,7 @@ public class RepositorioPropietario
         List<Propietario> propietarios = new List<Propietario>();
         using (MySqlConnection connection = new MySqlConnection(ConnectionString))
         {
-            //var query = "SELECT id, nombre, apellido, dni, email, telefono, password, estado FROM propietario";
-            var query = "SELECT id, nombre, apellido, dni, email, telefono, estado FROM propietario";
+            var query = "SELECT id, nombre, apellido, dni, email, telefono, estado, password FROM propietario";
             using (MySqlCommand command = new MySqlCommand(query, connection))
             {
                 connection.Open();
@@ -29,7 +28,7 @@ public class RepositorioPropietario
                     propietario.dni = reader.GetString("dni");
                     propietario.email = reader.GetString("email");
                     propietario.telefono = reader.GetString("telefono");
-                    //propietario.password = reader.GetString("password");
+                    propietario.password = reader.GetString("password");
                     propietario.estado = reader.GetInt32("estado");
                     propietarios.Add(propietario);
                 }
@@ -44,7 +43,7 @@ public class RepositorioPropietario
         Propietario propietario = new Propietario();
         using (MySqlConnection connection = new MySqlConnection(ConnectionString))
         {
-            var sql = "SELECT id, nombre, apellido, dni, email, telefono, estado FROM propietario WHERE id = @id";
+            var sql = "SELECT id, nombre, apellido, dni, email, telefono, estado, password FROM propietario WHERE id = @id";
             using (MySqlCommand command = new MySqlCommand(sql, connection))
             {
                 connection.Open();
@@ -59,7 +58,7 @@ public class RepositorioPropietario
                     propietario.dni = reader.GetString("dni");
                     propietario.email = reader.GetString("email");
                     propietario.telefono = reader.GetString("telefono");
-                    //propietario.password = reader.GetString("password");
+                    propietario.password = reader.GetString("password");
                     propietario.estado = reader.GetInt32("estado");
                 }
                 connection.Close();
@@ -122,6 +121,42 @@ public class RepositorioPropietario
             }
         }
     }
+    public bool ExisteDni(string dni,int? idExcluido = null)
+    {
+        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+        {
+            string sql = "SELECT COUNT(*) FROM propietario WHERE dni = @dni ";
+            if (idExcluido.HasValue)
+            sql += " AND id != @id";
+            using (var cmd = new MySqlCommand(sql, connection))
+            {
+                connection.Open();
+                cmd.Parameters.AddWithValue("@dni", dni);
+                if (idExcluido.HasValue)
+                    cmd.Parameters.AddWithValue("@id", idExcluido.Value);
+                int count = Convert.ToInt32(cmd.ExecuteScalar());
+                return count > 0;
+            }
+        }
+    }
+ public bool ExisteEmail(string email, int? idExcluido = null)
+{
+       using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+       {
+        string sql = "SELECT COUNT(*) FROM propietario WHERE email = @email ";
+            if (idExcluido.HasValue)
+            sql += " AND id != @id";
+        using (var cmd = new MySqlCommand(sql, connection))
+            {
+                connection.Open();
+                cmd.Parameters.AddWithValue("@email", email);
+                 if (idExcluido.HasValue)
+                 cmd.Parameters.AddWithValue("@id", idExcluido.Value);
+                int count = Convert.ToInt32(cmd.ExecuteScalar());
+                return count > 0;
+            }
+    }
+}
     
 }
 
