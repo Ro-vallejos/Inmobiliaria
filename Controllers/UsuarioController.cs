@@ -38,15 +38,27 @@ public class UsuarioController : Controller
     public IActionResult Eliminar(int id)
     {
         _usuarioRepo.EliminarUsuario(id);
+        TempData["Exito"] = "Usuario desactivado con éxito";
         return RedirectToAction("Index");
     }
     
+    public IActionResult Activar(int id)
+    {
+        _usuarioRepo.ActivarUsuario(id);
+        TempData["Exito"] = "Usuario activado con éxito";
+        return RedirectToAction("Index");
+    }
+
     [HttpPost]
     public IActionResult Editar(Usuario usuarioEditado)
     {
-        TempData["Exito"] = "Datos guardados con éxito";
-        _usuarioRepo.ActualizarUsuario(usuarioEditado);
-        return RedirectToAction("Index");
+        if (ModelState.IsValid)
+        {
+            _usuarioRepo.ActualizarUsuario(usuarioEditado);
+            TempData["Exito"] = "Datos guardados con éxito";
+            return RedirectToAction("Index");
+        }
+        return View("Editar", usuarioEditado);
     }
 
     [HttpPost]
