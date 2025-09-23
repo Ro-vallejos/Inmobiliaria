@@ -20,9 +20,14 @@ namespace _net_integrador.Models
         [RegularExpression(@"^\d{8}$", ErrorMessage = "El DNI no es válido")]
 
         public string dni { get; set; } = string.Empty;
+        
+        [Required(ErrorMessage = "El email es obligatorio")]
+        [EmailAddress(ErrorMessage = "El email no es válido")]
+        public string email { get; set; } = string.Empty;
+
         [Required(ErrorMessage = "El telefono es obligatorio")]
         [RegularExpression(@"^(\d{8,12})?$", ErrorMessage = "El teléfono no es válido")]
-        public string email { get; set; } = string.Empty;
+        public string telefono { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "La clave es obligatoria"), DataType(DataType.Password)]
         [RegularExpression(@"^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,12}$", ErrorMessage = "La contraseña debe tener entre 8 y 12 caracteres, al menos una mayúscula, un número y un signo")]
