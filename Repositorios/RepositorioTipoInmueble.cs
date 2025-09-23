@@ -1,17 +1,20 @@
 using _net_integrador.Models;
 using MySql.Data.MySqlClient;
 using System.Collections.Generic;
+using Microsoft.Extensions.Configuration;
 
 namespace _net_integrador.Repositorios;
 
-public class RepositorioTipoInmueble
+// Ahora la clase RepositorioTipoInmueble hereda de RepositorioBase e implementa IRepositorioTipoInmueble
+public class RepositorioTipoInmueble : RepositorioBase, IRepositorioTipoInmueble
 {
-    string ConnectionString = "Server=localhost;Database=inmobiliaria;User=root;Password=;";
+    // El constructor ahora recibe la configuración para pasársela a la clase base
+    public RepositorioTipoInmueble(IConfiguration configuration) : base(configuration) { }
 
     public List<TipoInmueble> ObtenerTiposInmueble()
     {
         List<TipoInmueble> tipos = new List<TipoInmueble>();
-        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
             var query = "SELECT id, tipo FROM tipo_inmueble";
             using (MySqlCommand command = new MySqlCommand(query, connection))
@@ -35,7 +38,7 @@ public class RepositorioTipoInmueble
     public TipoInmueble? ObtenerTipoInmuebleId(int id)
     {
         TipoInmueble? tipoInmueble = null;
-        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
             var sql = "SELECT id, tipo FROM tipo_inmueble WHERE id = @id";
             using (MySqlCommand command = new MySqlCommand(sql, connection))
@@ -59,7 +62,7 @@ public class RepositorioTipoInmueble
 
     public void AgregarTipoInmueble(TipoInmueble tipo)
     {
-        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
             var sql = "INSERT INTO tipo_inmueble (tipo) VALUES (@tipo)";
             using (MySqlCommand command = new MySqlCommand(sql, connection))
@@ -74,7 +77,7 @@ public class RepositorioTipoInmueble
 
     public void ActualizarTipoInmueble(TipoInmueble tipo)
     {
-        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
             var sql = "UPDATE tipo_inmueble SET tipo = @tipo WHERE id = @id";
             using (MySqlCommand command = new MySqlCommand(sql, connection))
@@ -90,7 +93,7 @@ public class RepositorioTipoInmueble
 
     public void EliminarTipoInmueble(int id)
     {
-        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
             var query = "DELETE FROM tipo_inmueble WHERE id = @id";
             using (var command = new MySqlCommand(query, connection))

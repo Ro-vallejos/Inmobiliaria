@@ -1,17 +1,20 @@
 using _net_integrador.Models;
 using MySql.Data.MySqlClient;
 using System.Collections.Generic;
+using Microsoft.Extensions.Configuration;
 
 namespace _net_integrador.Repositorios;
 
-public class RepositorioUsuario
+// Ahora la clase RepositorioUsuario hereda de RepositorioBase e implementa IRepositorioUsuario
+public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
 {
-    string ConnectionString = "Server=localhost;Database=inmobiliaria;User=root;Password=;";
+    // El constructor ahora recibe la configuración para pasársela a la clase base
+    public RepositorioUsuario(IConfiguration configuration) : base(configuration) { }
 
     public List<Usuario> ObtenerUsuarios()
     {
         List<Usuario> usuarios = new List<Usuario>();
-        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
             var query = "SELECT id, nombre, apellido, dni, email, password, rol, estado FROM usuario";
             using (MySqlCommand command = new MySqlCommand(query, connection))
@@ -41,7 +44,7 @@ public class RepositorioUsuario
     public Usuario? ObtenerUsuarioId(int id)
     {
         Usuario? usuario = null;
-        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
             var sql = "SELECT id, nombre, apellido, dni, email, password, rol, estado FROM usuario WHERE id = @id";
             using (MySqlCommand command = new MySqlCommand(sql, connection))
@@ -71,7 +74,7 @@ public class RepositorioUsuario
     
     public void AgregarUsuario(Usuario usuario)
     {
-        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
             var sql = "INSERT INTO usuario (nombre, apellido, dni, email, password, rol, estado) VALUES (@nombre, @apellido, @dni, @email, @password, @rol, @estado)";
             using (MySqlCommand command = new MySqlCommand(sql, connection))
@@ -92,7 +95,7 @@ public class RepositorioUsuario
 
     public void ActualizarUsuario(Usuario usuario)
     {
-        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
             var sql = "UPDATE usuario SET nombre = @nombre, apellido = @apellido, dni = @dni, email = @email, password = @password, rol = @rol, estado = @estado WHERE id = @id";
             using (MySqlCommand command = new MySqlCommand(sql, connection))
@@ -114,7 +117,7 @@ public class RepositorioUsuario
 
     public void EliminarUsuario(int id)
     {
-        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
             var query = "UPDATE usuario SET estado = 0 WHERE id = @id";
             using (var command = new MySqlCommand(query, connection))

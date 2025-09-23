@@ -1,17 +1,20 @@
 using _net_integrador.Models;
 using MySql.Data.MySqlClient;
 using System.Collections.Generic;
+using Microsoft.Extensions.Configuration;
 
 namespace _net_integrador.Repositorios;
 
-public class RepositorioContrato
+// Ahora la clase RepositorioContrato hereda de RepositorioBase e implementa IRepositorioContrato
+public class RepositorioContrato : RepositorioBase, IRepositorioContrato
 {
-    string ConnectionString = "Server=localhost;Database=inmobiliaria;User=root;Password=;";
+    // El constructor ahora recibe la configuración para pasársela a la clase base
+    public RepositorioContrato(IConfiguration configuration) : base(configuration) { }
 
     public List<Contrato> ObtenerContratos()
     {
         List<Contrato> contratos = new List<Contrato>();
-        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
             var query = "SELECT id, id_inquilino, id_inmueble, id_usuario, monto, fecha_inicio, fecha_fin, incremento, estado FROM contrato";
             using (MySqlCommand command = new MySqlCommand(query, connection))
@@ -42,7 +45,7 @@ public class RepositorioContrato
     public Contrato? ObtenerContratoId(int id)
     {
         Contrato? contrato = null;
-        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
             var sql = "SELECT id, id_inquilino, id_inmueble, id_usuario, monto, fecha_inicio, fecha_fin, incremento, estado FROM contrato WHERE id = @id";
             using (MySqlCommand command = new MySqlCommand(sql, connection))
@@ -73,7 +76,7 @@ public class RepositorioContrato
 
     public void AgregarContrato(Contrato contrato)
     {
-        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
             var sql = "INSERT INTO contrato (id_inquilino, id_inmueble, id_usuario, monto, fecha_inicio, fecha_fin, incremento, estado) VALUES (@id_inquilino, @id_inmueble, @id_usuario, @monto, @fecha_inicio, @fecha_fin, @incremento, @estado)";
             using (MySqlCommand command = new MySqlCommand(sql, connection))
@@ -95,7 +98,7 @@ public class RepositorioContrato
 
     public void ActualizarContrato(Contrato contrato)
     {
-        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
             var sql = "UPDATE contrato SET id_inquilino = @id_inquilino, id_inmueble = @id_inmueble, id_usuario = @id_usuario, monto = @monto, fecha_inicio = @fecha_inicio, fecha_fin = @fecha_fin, incremento = @incremento, estado = @estado WHERE id = @id";
             using (MySqlCommand command = new MySqlCommand(sql, connection))
