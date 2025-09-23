@@ -8,17 +8,18 @@ namespace _net_integrador.Controllers
     public class InquilinoController : Controller
     {
         private readonly ILogger<InquilinoController> _logger;
+        private readonly IRepositorioInquilino _inquilinoRepo;
 
-        private readonly RepositorioInquilino inquilinoRepo = new RepositorioInquilino();
-
-        public InquilinoController(ILogger<InquilinoController> logger)
+        // Inyectamos la interfaz IRepositorioInquilino
+        public InquilinoController(ILogger<InquilinoController> logger, IRepositorioInquilino inquilinoRepo)
         {
             _logger = logger;
+            _inquilinoRepo = inquilinoRepo;
         }
 
         public IActionResult Index()
         {
-            var listaInquilinos = inquilinoRepo.ObtenerInquilinos();
+            var listaInquilinos = _inquilinoRepo.ObtenerInquilinos();
             return View(listaInquilinos);
         }
 
@@ -38,15 +39,15 @@ namespace _net_integrador.Controllers
             else
             {
                 try
-                 {
+                {
                     bool error = false;
-                    if (inquilinoRepo.ExisteDni(inquilinoNuevo.dni))
+                    if (_inquilinoRepo.ExisteDni(inquilinoNuevo.dni))
                     {
                         ModelState.AddModelError("dni", "Este DNI ya está registrado");
                         error = true;
                     }
 
-                    if (inquilinoRepo.ExisteEmail(inquilinoNuevo.email))
+                    if (_inquilinoRepo.ExisteEmail(inquilinoNuevo.email))
                     {
                         ModelState.AddModelError("email", "Este email ya está registrado");
                         error = true;
@@ -59,7 +60,7 @@ namespace _net_integrador.Controllers
                     inquilinoNuevo.apellido = inquilinoNuevo.apellido?.ToUpper() ?? "";
                     inquilinoNuevo.email = inquilinoNuevo.email?.ToLower() ?? "";
                     inquilinoNuevo.estado = 1;
-                    inquilinoRepo.AgregarInquilino(inquilinoNuevo);
+                    _inquilinoRepo.AgregarInquilino(inquilinoNuevo);
                     TempData["Exito"] = "Datos guardados con éxito";
                     return RedirectToAction("Index");
                 }
@@ -74,7 +75,7 @@ namespace _net_integrador.Controllers
         [HttpGet]
         public IActionResult Editar(int id)
         {
-            var inquilinoSeleccionado = inquilinoRepo.ObtenerInquilinoId(id);
+            var inquilinoSeleccionado = _inquilinoRepo.ObtenerInquilinoId(id);
             if (inquilinoSeleccionado == null) return NotFound();
             return View(inquilinoSeleccionado);
         }
@@ -93,13 +94,13 @@ namespace _net_integrador.Controllers
 
 
                     bool error = false;
-                    if (inquilinoRepo.ExisteDni(inquilino.dni, inquilino.id))
+                    if (_inquilinoRepo.ExisteDni(inquilino.dni, inquilino.id))
                     {
                         ModelState.AddModelError("dni", "Este DNI ya está registrado");
                         error = true;
                     }
 
-                    if (inquilinoRepo.ExisteEmail(inquilino.email, inquilino.id))
+                    if (_inquilinoRepo.ExisteEmail(inquilino.email, inquilino.id))
                     {
                         ModelState.AddModelError("email", "Este email ya está registrado");
                         error = true;
@@ -111,7 +112,7 @@ namespace _net_integrador.Controllers
                     inquilino.nombre = inquilino.nombre?.ToUpper() ?? "";
                     inquilino.apellido = inquilino.apellido?.ToUpper() ?? "";
                     inquilino.email = inquilino.email?.ToLower() ?? "";
-                    inquilinoRepo.ActualizarInquilino(inquilino);
+                    _inquilinoRepo.ActualizarInquilino(inquilino);
                     TempData["Exito"] = "Datos guardados con éxito";
                     return RedirectToAction("Index");
                 }
@@ -126,7 +127,7 @@ namespace _net_integrador.Controllers
 
         public IActionResult Eliminar(int id)
         {
-            inquilinoRepo.EliminarInquilino(id);
+            _inquilinoRepo.EliminarInquilino(id);
             return RedirectToAction("Index");
         }
     }

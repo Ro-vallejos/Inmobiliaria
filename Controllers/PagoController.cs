@@ -8,16 +8,17 @@ namespace _net_integrador.Controllers;
 public class PagoController : Controller
 {
     private readonly ILogger<PagoController> _logger;
-    private RepositorioPago pago = new RepositorioPago();
+    private readonly IRepositorioPago _pagoRepo;
 
-    public PagoController(ILogger<PagoController> logger)
+    public PagoController(ILogger<PagoController> logger, IRepositorioPago pagoRepo)
     {
         _logger = logger;
+        _pagoRepo = pagoRepo;
     }
 
     public IActionResult Index(int contratoId)
     {
-        var listaPagos = pago.ObtenerPagosPorContrato(contratoId);
+        var listaPagos = _pagoRepo.ObtenerPagosPorContrato(contratoId);
         ViewBag.ContratoId = contratoId;
         return View(listaPagos);
     }
@@ -31,7 +32,7 @@ public class PagoController : Controller
 
     public IActionResult Anular(int id)
     {
-        pago.AnularPago(id);
+        _pagoRepo.AnularPago(id);
         TempData["Exito"] = "Pago anulado con éxito";
         return RedirectToAction("Index", new { contratoId = TempData["ContratoId"] });
     }
@@ -42,7 +43,7 @@ public class PagoController : Controller
         if (ModelState.IsValid)
         {
             pagoNuevo.estado = 1;
-            pago.AgregarPago(pagoNuevo);
+            _pagoRepo.AgregarPago(pagoNuevo);
             TempData["Exito"] = "Pago agregado con éxito";
             return RedirectToAction("Index", new { contratoId = pagoNuevo.id_contrato });
         }

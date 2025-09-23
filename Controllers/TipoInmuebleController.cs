@@ -8,16 +8,19 @@ namespace _net_integrador.Controllers;
 public class TipoInmuebleController : Controller
 {
     private readonly ILogger<TipoInmuebleController> _logger;
-    private RepositorioTipoInmueble tipoInmueble = new RepositorioTipoInmueble();
+    // Usamos la interfaz del repositorio para habilitar la inyección de dependencias
+    private readonly IRepositorioTipoInmueble _tipoInmuebleRepo;
 
-    public TipoInmuebleController(ILogger<TipoInmuebleController> logger)
+    // El constructor ahora recibe la interfaz del repositorio como dependencia
+    public TipoInmuebleController(ILogger<TipoInmuebleController> logger, IRepositorioTipoInmueble tipoInmuebleRepo)
     {
         _logger = logger;
+        _tipoInmuebleRepo = tipoInmuebleRepo;
     }
 
     public IActionResult Index()
     {
-        var listaTiposInmueble = tipoInmueble.ObtenerTiposInmueble();
+        var listaTiposInmueble = _tipoInmuebleRepo.ObtenerTiposInmueble();
         return View(listaTiposInmueble);
     }
     
@@ -30,13 +33,13 @@ public class TipoInmuebleController : Controller
     [HttpGet]
     public IActionResult Editar(int id)
     {
-        var tipoSeleccionado = tipoInmueble.ObtenerTipoInmuebleId(id);
+        var tipoSeleccionado = _tipoInmuebleRepo.ObtenerTipoInmuebleId(id);
         return View(tipoSeleccionado);
     }
 
     public IActionResult Eliminar(int id)
     {
-        tipoInmueble.EliminarTipoInmueble(id);
+        _tipoInmuebleRepo.EliminarTipoInmueble(id);
         return RedirectToAction("Index");
     }
 
@@ -44,7 +47,7 @@ public class TipoInmuebleController : Controller
     public IActionResult Editar(TipoInmueble tipoEditado)
     {
         TempData["Exito"] = "Datos guardados con éxito";
-        tipoInmueble.ActualizarTipoInmueble(tipoEditado);
+        _tipoInmuebleRepo.ActualizarTipoInmueble(tipoEditado);
         return RedirectToAction("Index");
     }
 
@@ -53,7 +56,7 @@ public class TipoInmuebleController : Controller
     {
         if (ModelState.IsValid)
         {
-            tipoInmueble.AgregarTipoInmueble(tipoNuevo);
+            _tipoInmuebleRepo.AgregarTipoInmueble(tipoNuevo);
             TempData["Exito"] = "Tipo de inmueble agregado con éxito";
             return RedirectToAction("Index");
         }
