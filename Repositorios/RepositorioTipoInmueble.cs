@@ -32,9 +32,9 @@ public class RepositorioTipoInmueble
         return tipos;
     }
 
-    public TipoInmueble ObtenerTipoInmuebleId(int id)
+    public TipoInmueble? ObtenerTipoInmuebleId(int id)
     {
-        TipoInmueble tipoInmueble = null;
+        TipoInmueble? tipoInmueble = null;
         using (MySqlConnection connection = new MySqlConnection(ConnectionString))
         {
             var sql = "SELECT id, tipo FROM tipo_inmueble WHERE id = @id";

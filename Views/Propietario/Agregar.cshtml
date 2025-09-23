@@ -32,13 +32,13 @@
 
     <div class="form-group">
         @Html.LabelFor(m => m.telefono, "Telefono")
-        @Html.TextBoxFor(m => m.telefono, new { @class = "form-control" ,type = "text", data_val_required = "false"})
+        @Html.TextBoxFor(m => m.telefono, new { @class = "form-control" })
          @Html.ValidationMessageFor(m => m.telefono, "", new { @class = "text-danger" })
 
     </div>
     <div class="form-group">
         @Html.LabelFor(m => m.password, "Contraseña")
-        @Html.TextBoxFor(m => m.password, new { @class = "form-control" })
+        @Html.TextBoxFor(m => m.password, new { @class = "form-control", type = "password" })
         @Html.ValidationMessageFor(m => m.password, "", new { @class = "text-danger" })
     </div>
 

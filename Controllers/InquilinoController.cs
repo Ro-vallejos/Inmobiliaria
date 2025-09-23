@@ -31,14 +31,44 @@ namespace _net_integrador.Controllers
         [HttpPost]
         public IActionResult Agregar(Inquilino inquilinoNuevo)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                inquilinoNuevo.estado = 1;
-                inquilinoRepo.AgregarInquilino(inquilinoNuevo);
-                TempData["Exito"] = "Inquilino agregado con éxito";
-                return RedirectToAction("Index");
+                return View(inquilinoNuevo);
             }
-            return View(inquilinoNuevo);
+            else
+            {
+                try
+                 {
+                    bool error = false;
+                    if (inquilinoRepo.ExisteDni(inquilinoNuevo.dni))
+                    {
+                        ModelState.AddModelError("dni", "Este DNI ya está registrado");
+                        error = true;
+                    }
+
+                    if (inquilinoRepo.ExisteEmail(inquilinoNuevo.email))
+                    {
+                        ModelState.AddModelError("email", "Este email ya está registrado");
+                        error = true;
+                    }
+                    if (error)
+                    {
+                        return View();
+                    }
+                    inquilinoNuevo.nombre = inquilinoNuevo.nombre?.ToUpper() ?? "";
+                    inquilinoNuevo.apellido = inquilinoNuevo.apellido?.ToUpper() ?? "";
+                    inquilinoNuevo.email = inquilinoNuevo.email?.ToLower() ?? "";
+                    inquilinoNuevo.estado = 1;
+                    inquilinoRepo.AgregarInquilino(inquilinoNuevo);
+                    TempData["Exito"] = "Datos guardados con éxito";
+                    return RedirectToAction("Index");
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(ex.Message);
+
+                }
+            }
         }
 
         [HttpGet]
@@ -52,11 +82,46 @@ namespace _net_integrador.Controllers
         [HttpPost]
         public IActionResult Editar(Inquilino inquilino)
         {
-            if (!ModelState.IsValid) return View(inquilino);
+            if (!ModelState.IsValid)
+            {
+                return View(inquilino);
+            }
+            else
+            {
+                try
+                {
 
-            inquilinoRepo.ActualizarInquilino(inquilino);
-            TempData["Exito"] = "Datos guardados con éxito";
-            return RedirectToAction("Index");
+
+                    bool error = false;
+                    if (inquilinoRepo.ExisteDni(inquilino.dni, inquilino.id))
+                    {
+                        ModelState.AddModelError("dni", "Este DNI ya está registrado");
+                        error = true;
+                    }
+
+                    if (inquilinoRepo.ExisteEmail(inquilino.email, inquilino.id))
+                    {
+                        ModelState.AddModelError("email", "Este email ya está registrado");
+                        error = true;
+                    }
+                    if (error)
+                    {
+                        return View();
+                    }
+                    inquilino.nombre = inquilino.nombre?.ToUpper() ?? "";
+                    inquilino.apellido = inquilino.apellido?.ToUpper() ?? "";
+                    inquilino.email = inquilino.email?.ToLower() ?? "";
+                    inquilinoRepo.ActualizarInquilino(inquilino);
+                    TempData["Exito"] = "Datos guardados con éxito";
+                    return RedirectToAction("Index");
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(ex.Message);
+
+                }
+            }
+
         }
 
         public IActionResult Eliminar(int id)

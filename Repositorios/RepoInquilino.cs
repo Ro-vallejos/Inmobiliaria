@@ -130,4 +130,40 @@ public class RepositorioInquilino
             }
         }
     }
+    public bool ExisteDni(string dni,int? idExcluido = null)
+    {
+        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+        {
+            string sql = "SELECT COUNT(*) FROM inquilino WHERE dni = @dni ";
+            if (idExcluido.HasValue)
+            sql += " AND id != @id";
+            using (var cmd = new MySqlCommand(sql, connection))
+            {
+                connection.Open();
+                cmd.Parameters.AddWithValue("@dni", dni);
+                if (idExcluido.HasValue)
+                    cmd.Parameters.AddWithValue("@id", idExcluido.Value);
+                int count = Convert.ToInt32(cmd.ExecuteScalar());
+                return count > 0;
+            }
+        }
+    }
+     public bool ExisteEmail(string email, int? idExcluido = null)
+    {
+        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+        {
+            string sql = "SELECT COUNT(*) FROM inquilino WHERE email = @email ";
+            if (idExcluido.HasValue)
+                sql += " AND id != @id";
+            using (var cmd = new MySqlCommand(sql, connection))
+            {
+                connection.Open();
+                cmd.Parameters.AddWithValue("@email", email);
+                if (idExcluido.HasValue)
+                    cmd.Parameters.AddWithValue("@id", idExcluido.Value);
+                int count = Convert.ToInt32(cmd.ExecuteScalar());
+                return count > 0;
+            }
+        }
+    }
 }

@@ -10,14 +10,8 @@ namespace _net_integrador.Models
     {
         public int id { get; set; }
         public int id_contrato { get; set; }
-         [Required]
-
-        public Contrato? Contrato { get; set; }
-         [Required]
-
-        public DateTime fecha_pago { get; set; }
-         [Required]
-        
+        public Contrato Contrato { get; set; }= new Contrato();    
+        public DateTime fecha_pago { get; set; }        
         public decimal importe { get; set; }
         public int estado { get; set; }
     }

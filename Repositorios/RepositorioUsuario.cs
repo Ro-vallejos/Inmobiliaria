@@ -38,9 +38,9 @@ public class RepositorioUsuario
         return usuarios;
     }
 
-    public Usuario ObtenerUsuarioId(int id)
+    public Usuario? ObtenerUsuarioId(int id)
     {
-        Usuario usuario = null;
+        Usuario? usuario = null;
         using (MySqlConnection connection = new MySqlConnection(ConnectionString))
         {
             var sql = "SELECT id, nombre, apellido, dni, email, password, rol, estado FROM usuario WHERE id = @id";

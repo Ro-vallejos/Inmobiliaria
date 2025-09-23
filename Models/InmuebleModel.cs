@@ -9,28 +9,33 @@ namespace _net_integrador.Models
     {
         public int id { get; set; }
         public int id_propietario { get; set; }
-        public Propietario? Propietario { get; set; }
-         [Required]
+        public Propietario Propietario { get; set; } = new Propietario();
+        [Required(ErrorMessage = "Este campo es obligatorio")]
 
-        public string? direccion { get; set; }
-         [Required]
-        public string? uso { get; set; }
+
+        public string direccion { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Este campo es obligatorio")]
+
+        public string uso { get; set; } = string.Empty;
         public int id_tipo { get; set; }
-         [Required]
 
-        public TipoInmueble? TipoInmueble { get; set; }
-         [Required]
 
-        public int ambientes { get; set; }
-         [Required]
+        public TipoInmueble TipoInmueble { get; set; } = new TipoInmueble();
+        [Required(ErrorMessage = "La cantidad de ambientes es obligatoria")]
+        [Range(1, 20, ErrorMessage = "La cantidad de ambientes debe estar entre 1 y 20")]
 
-        public string? eje_x { get; set; }
-         [Required]
+        public int? ambientes { get; set; }
+        [Required(ErrorMessage = "Este campo es obligatorio")]
 
-        public string? eje_y { get; set; }
-         [Required]
+        public string eje_x { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Este campo es obligatorio")]
 
-        public decimal precio { get; set; }
+
+        public string eje_y { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Este campo es obligatorio")]
+
+
+        public decimal? precio { get; set; } 
         public int estado { get; set; }
     }
 }

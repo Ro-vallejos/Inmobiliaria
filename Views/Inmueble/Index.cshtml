@@ -40,7 +40,8 @@
                 <td>@i.direccion</td>
                 <td>@i.uso</td>
                 <td>@i.id_tipo</td>
-                <td>@i.precio.ToString("C")</td>
+                @*<td>@i.precio.ToString("C")</td>-->*@
+                <td>@(i.precio.HasValue ? $"${i.precio.Value:0.00}" : "Sin precio")</td>
                 <td>@(i.estado == 1 ? "Disponible" : "Suspendido")</td>
                 <td>
                     @Html.ActionLink("Editar", "Editar", new { id = i.id }, new { @class = "btn btn-primary btn-sm" })

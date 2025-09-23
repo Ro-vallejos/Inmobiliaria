@@ -40,9 +40,9 @@ public class RepositorioInmueble
         return inmuebles;
     }
 
-    public Inmueble ObtenerInmuebleId(int id)
+    public Inmueble? ObtenerInmuebleId(int id)
     {
-        Inmueble inmueble = null;
+        Inmueble? inmueble = null;
         using (MySqlConnection connection = new MySqlConnection(ConnectionString))
         {
             var sql = "SELECT id, id_propietario, direccion, uso, id_tipo, ambientes, eje_x, eje_y, precio, estado FROM inmueble WHERE id = @id";

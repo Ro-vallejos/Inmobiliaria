@@ -36,9 +36,9 @@ public class RepositorioPago
         return pagos;
     }
     
-    public Pago ObtenerPagoId(int id)
+    public Pago? ObtenerPagoId(int id)
     {
-        Pago pago = null;
+        Pago? pago = null;
         using (MySqlConnection connection = new MySqlConnection(ConnectionString))
         {
             var sql = "SELECT id, id_contrato, fecha_pago, importe, estado FROM pago WHERE id = @id";
