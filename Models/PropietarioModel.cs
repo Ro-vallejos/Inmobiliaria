@@ -35,7 +35,7 @@ public override string ToString()
 			}
 			return res;
 		}
-public string NombreCompleto => $"{nombre} {apellido}";
+public string? NombreCompleto => $"{nombre} {apellido}";
 
 }
 //id, nombre, apellido, dni(varchar),email, telegono, password, estado(int)

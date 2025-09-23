@@ -24,6 +24,7 @@
     <thead>
         <tr>
             <th>Código</th>
+            <th>Propietario</th>
             <th>Dirección</th>
             <th>Uso</th>
             <th>Tipo</th>
@@ -37,15 +38,31 @@
         {
             <tr>
                 <td>@i.id</td>
+                <td>@i.propietario?.NombreCompleto</td>
                 <td>@i.direccion</td>
                 <td>@i.uso</td>
-                <td>@i.id_tipo</td>
+                <td>@i.tipoInmueble?.tipo</td>
                 @*<td>@i.precio.ToString("C")</td>-->*@
                 <td>@(i.precio.HasValue ? $"${i.precio.Value:0.00}" : "Sin precio")</td>
                 <td>@(i.estado == 1 ? "Disponible" : "Suspendido")</td>
                 <td>
                     @Html.ActionLink("Editar", "Editar", new { id = i.id }, new { @class = "btn btn-primary btn-sm" })
-                    @Html.ActionLink("Suspender", "Suspender", new { id = i.id }, new { @class = "btn btn-warning btn-sm", onclick = "return confirm('¿Seguro que querés suspender este inmueble?');" })
+                    @if (i.estado == 1)
+                    {
+                        @Html.ActionLink(
+                            "Suspender",
+                            "Suspender",
+                            new { id = i.id },
+                            new { @class = "btn btn-warning btn-sm", onclick = "return confirm('¿Seguro que querés suspender este inmueble?');" })
+                    }
+                    else
+                    {
+                        @Html.ActionLink(
+                            "Activar",
+                            "Activar",
+                            new { id = i.id },
+                            new { @class = "btn btn-success btn-sm", onclick = "return confirm('¿Seguro que querés activar este inmueble?');" })
+                    }
                 </td>
             </tr>
         }

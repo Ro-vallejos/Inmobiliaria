@@ -6,9 +6,11 @@ namespace _net_integrador.Repositorios
     public interface IRepositorioInmueble
     {
         List<Inmueble> ObtenerInmuebles();
-        Inmueble ObtenerInmuebleId(int id);
+        Inmueble? ObtenerInmuebleId(int id);
         void AgregarInmueble(Inmueble inmuebleNuevo);
         void ActualizarInmueble(Inmueble inmuebleEditado);
         void SuspenderOferta(int id);
+        void ActivarOferta(int id);
+
     }
 }
