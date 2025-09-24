@@ -12,5 +12,7 @@ namespace _net_integrador.Repositorios
         void AgregarInquilino(Inquilino inquilino);
         bool ExisteDni(string dni, int? idExcluido = null);
         bool ExisteEmail(string email, int? idExcluido = null);
+        List<Inquilino> ObtenerInquilinosActivos();
+
     }
 }

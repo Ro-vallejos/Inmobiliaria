@@ -44,7 +44,12 @@
                 <td>@i.tipoInmueble?.tipo</td>
                 @*<td>@i.precio.ToString("C")</td>-->*@
                 <td>@(i.precio.HasValue ? $"${i.precio.Value:0.00}" : "Sin precio")</td>
-                <td>@(i.estado == 1 ? "Disponible" : "Suspendido")</td>
+                <td>
+                    @(i.estado == 1 ? "Disponible" :
+                    i.estado == 0 ? "Suspendido" :
+                    i.estado == 3 ? "Alquilado" : "Desconocido")
+                </td>
+
                 <td>
                     @Html.ActionLink("Editar", "Editar", new { id = i.id }, new { @class = "btn btn-primary btn-sm" })
                     @if (i.estado == 1)

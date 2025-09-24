@@ -166,5 +166,35 @@ namespace _net_integrador.Repositorios
                 }
             }
         }
+        public List<Inquilino> ObtenerInquilinosActivos()
+        {
+            List<Inquilino> inquilinos = new List<Inquilino>();
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                var query = "SELECT id, nombre, apellido, dni, email, telefono, estado FROM inquilino WHERE estado != 0";
+                using (MySqlCommand command = new MySqlCommand(query, connection))
+                {
+                    connection.Open();
+                    var reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        Inquilino inquilino = new Inquilino
+                        {
+                            id = reader.GetInt32("id"),
+                            nombre = reader.GetString("nombre"),
+                            apellido = reader.GetString("apellido"),
+                            dni = reader.GetString("dni"),
+                            email = reader.GetString("email"),
+                            telefono = reader.GetString("telefono"),
+                            estado = reader.GetInt32("estado")
+                        };
+                        inquilinos.Add(inquilino);
+                    }
+                    connection.Close();
+                }
+            }
+            return inquilinos;
+        }
+
     }
 }

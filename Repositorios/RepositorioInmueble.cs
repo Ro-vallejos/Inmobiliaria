@@ -25,18 +25,22 @@ namespace _net_integrador.Repositorios
                     {
                         inmuebles.Add(new Inmueble
                         {
-                            id = reader.GetInt32("id"),                            
+                            id = reader.GetInt32("id"),
                             uso = Enum.Parse<UsoInmueble>(reader.GetString("uso")),
                             id_tipo = reader.GetInt32("id_tipo"),
                             precio = reader.GetDecimal("precio"),
                             estado = reader.GetInt32("estado"),
                             direccion = reader.GetString("direccion"),
-                            propietario = new Propietario {
+                            propietario = new Propietario
+                            {
                                 nombre = reader.GetString("nombrePropietario"),
-                                apellido = reader.GetString("apellidoPropietario") },
-                            tipoInmueble = new TipoInmueble {
+                                apellido = reader.GetString("apellidoPropietario")
+                            },
+                            tipoInmueble = new TipoInmueble
+                            {
                                 id = reader.GetInt32("id_tipo"),
-                                tipo = reader.GetString("tipoInmueble") }
+                                tipo = reader.GetString("tipoInmueble")
+                            }
                         });
                     }
                     connection.Close();
@@ -63,7 +67,6 @@ namespace _net_integrador.Repositorios
                             id = reader.GetInt32("id"),
                             id_propietario = reader.GetInt32("id_propietario"),
                             direccion = reader.GetString("direccion"),
-                            //uso = reader.GetString("uso"),
                             uso = Enum.Parse<UsoInmueble>(reader.GetString("uso")),
                             id_tipo = reader.GetInt32("id_tipo"),
                             ambientes = reader.GetInt32("ambientes"),
@@ -121,7 +124,7 @@ namespace _net_integrador.Repositorios
                     command.Parameters.AddWithValue("@id", inmuebleEditado.id);
                     command.Parameters.AddWithValue("@id_propietario", inmuebleEditado.id_propietario);
                     command.Parameters.AddWithValue("@direccion", inmuebleEditado.direccion);
-                    command.Parameters.AddWithValue("@uso", inmuebleEditado.uso);
+                    command.Parameters.AddWithValue("@uso", inmuebleEditado.uso.ToString());
                     command.Parameters.AddWithValue("@id_tipo", inmuebleEditado.id_tipo);
                     command.Parameters.AddWithValue("@ambientes", inmuebleEditado.ambientes);
                     command.Parameters.AddWithValue("@eje_x", inmuebleEditado.eje_x);
@@ -161,6 +164,53 @@ namespace _net_integrador.Repositorios
                     connection.Close();
                 }
             }
+        }
+
+        public List<Inmueble> ObtenerInmueblesDisponibles()
+        {
+            List<Inmueble> inmuebles = new List<Inmueble>();
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                var query = @"
+                    SELECT 
+                        i.id, i.direccion, i.uso, i.id_tipo, i.precio, i.estado, 
+                        p.nombre AS nombrePropietario, p.apellido AS apellidoPropietario, 
+                        t.tipo AS tipoInmueble
+                    FROM inmueble i
+                    JOIN propietario p ON i.id_propietario = p.id AND p.estado = 1
+                    JOIN tipo_inmueble t ON i.id_tipo = t.id
+                    WHERE i.estado = 1 AND i.id NOT IN (SELECT id_inmueble FROM contrato WHERE estado = 1)"; 
+
+                using (MySqlCommand command = new MySqlCommand(query, connection))
+                {
+                    connection.Open();
+                    var reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        inmuebles.Add(new Inmueble
+                        {
+                            id = reader.GetInt32("id"),
+                            uso = Enum.Parse<UsoInmueble>(reader.GetString("uso")),
+                            id_tipo = reader.GetInt32("id_tipo"),
+                            precio = reader.GetDecimal("precio"),
+                            estado = reader.GetInt32("estado"),
+                            direccion = reader.GetString("direccion"),
+                            propietario = new Propietario
+                            {
+                                nombre = reader.GetString("nombrePropietario"),
+                                apellido = reader.GetString("apellidoPropietario")
+                            },
+                            tipoInmueble = new TipoInmueble
+                            {
+                                id = reader.GetInt32("id_tipo"),
+                                tipo = reader.GetString("tipoInmueble")
+                            }
+                        });
+                    }
+                    connection.Close();
+                }
+            }
+            return inmuebles;
         }
     }
 }

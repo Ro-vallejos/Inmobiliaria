@@ -4,32 +4,43 @@
     ViewData["Title"] = "Nuevo Contrato";
 }
 
-<h2>Agregar Contrato</h2>
+<div class="container mt-4">
+    <h2>Agregar Nuevo Contrato</h2>
 
-<form asp-action="Agregar" method="post">
-    <div class="form-group">
-        @Html.LabelFor(m => m.id_inquilino)
-        @Html.TextBoxFor(m => m.id_inquilino, new { @class = "form-control" })
-    </div>
-    <div class="form-group">
-        @Html.LabelFor(m => m.id_inmueble)
-        @Html.TextBoxFor(m => m.id_inmueble, new { @class = "form-control" })
-    </div>
-    <div class="form-group">
-        @Html.LabelFor(m => m.monto)
-        @Html.TextBoxFor(m => m.monto, new { @class = "form-control" })
-    </div>
-    <div class="form-group">
-        @Html.LabelFor(m => m.fecha_inicio)
-        @Html.TextBoxFor(m => m.fecha_inicio, new { @class = "form-control", type = "date" })
-    </div>
-    <div class="form-group">
-        @Html.LabelFor(m => m.fecha_fin)
-        @Html.TextBoxFor(m => m.fecha_fin, new { @class = "form-control", type = "date" })
-    </div>
-    <div class="form-group">
-        @Html.LabelFor(m => m.incremento)
-        @Html.TextBoxFor(m => m.incremento, new { @class = "form-control" })
-    </div>
-    <button type="submit" class="btn btn-primary">Guardar</button>
-</form>
+    <form asp-action="Agregar" method="post" class="mt-4">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="form-group mb-3">
+            <label asp-for="id_inquilino" class="control-label"></label>
+            <select asp-for="id_inquilino" asp-items="@ViewBag.Inquilinos" class="form-control">
+                <option value="">Seleccione un inquilino</option>
+            </select>
+            <span asp-validation-for="id_inquilino" class="text-danger"></span>
+        </div>
+        <div class="form-group mb-3">
+            <label asp-for="id_inmueble" class="control-label"></label>
+            <select asp-for="id_inmueble" asp-items="@ViewBag.Inmuebles" class="form-control">
+                <option value="">Seleccione un inmueble</option>
+            </select>
+            <span asp-validation-for="id_inmueble" class="text-danger"></span>
+        </div>
+        <div class="form-group mb-3">
+            <label asp-for="fecha_inicio" class="control-label"></label>
+            <input asp-for="fecha_inicio" class="form-control" type="date" />
+            <span asp-validation-for="fecha_inicio" class="text-danger"></span>
+        </div>
+        <div class="form-group mb-3">
+            <label asp-for="fecha_fin" class="control-label"></label>
+            <input asp-for="fecha_fin" class="form-control" type="date" />
+            <span asp-validation-for="fecha_fin" class="text-danger"></span>
+        </div>
+        <div class="form-group mb-3">
+            <label asp-for="incremento" class="control-label"></label>
+            <input asp-for="incremento" class="form-control" />
+            <span asp-validation-for="incremento" class="text-danger"></span>
+        </div>
+        <div class="form-group mt-3">
+            <button type="submit" class="btn btn-primary">Guardar</button>
+            <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>

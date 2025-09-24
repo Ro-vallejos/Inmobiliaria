@@ -2,7 +2,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using _net_integrador.Models;
 using _net_integrador.Repositorios;
-using Microsoft.Extensions.Configuration; 
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace _net_integrador.Controllers;
 
@@ -10,13 +10,22 @@ public class ContratoController : Controller
 {
     private readonly ILogger<ContratoController> _logger;
     private readonly IRepositorioContrato _contratoRepo;
-    private readonly RepositorioPago _pagoRepo;
+    private readonly IRepositorioPago _pagoRepo;
+    private readonly IRepositorioInquilino _inquilinoRepo;
+    private readonly IRepositorioInmueble _inmuebleRepo;
 
-    public ContratoController(ILogger<ContratoController> logger, IRepositorioContrato contratoRepo, RepositorioPago pagoRepo)
+    public ContratoController(
+        ILogger<ContratoController> logger,
+        IRepositorioContrato contratoRepo,
+        IRepositorioPago pagoRepo,
+        IRepositorioInquilino inquilinoRepo,
+        IRepositorioInmueble inmuebleRepo)
     {
         _logger = logger;
         _contratoRepo = contratoRepo;
         _pagoRepo = pagoRepo;
+        _inquilinoRepo = inquilinoRepo;
+        _inmuebleRepo = inmuebleRepo;
     }
 
     public IActionResult Index()
@@ -24,10 +33,13 @@ public class ContratoController : Controller
         var listaContratos = _contratoRepo.ObtenerContratos();
         return View(listaContratos);
     }
-    
+
     [HttpGet]
     public IActionResult Agregar()
     {
+        ViewBag.Inquilinos = new SelectList(_inquilinoRepo.ObtenerInquilinosActivos(), "id", "nombre");
+        ViewBag.Inmuebles = new SelectList(_inmuebleRepo.ObtenerInmueblesDisponibles(), "id", "direccion");
+
         return View();
     }
 
@@ -40,21 +52,73 @@ public class ContratoController : Controller
         return View(contratoSeleccionado);
     }
 
+    [HttpPost]
     public IActionResult TerminarAnticipado(int id)
     {
-        var contratoSeleccionado = _contratoRepo.ObtenerContratoId(id);
-        return View("TerminarAnticipado", contratoSeleccionado);
+        var contrato = _contratoRepo.ObtenerContratoId(id);
+        if (contrato == null)
+        {
+            return NotFound();
+        }
+
+        contrato.estado = 0;
+        _contratoRepo.ActualizarContrato(contrato);
+        TempData["Exito"] = "Contrato terminado con éxito";
+
+        var inmueble = _inmuebleRepo.ObtenerInmuebleId(contrato.id_inmueble);
+        if (inmueble != null)
+        {
+            inmueble.estado = 1;
+            _inmuebleRepo.ActualizarInmueble(inmueble);
+        }
+
+        return RedirectToAction("Index");
     }
 
+    // [HttpPost]
+    // public IActionResult Agregar(Contrato contratoNuevo)
+    // {
+    //     if (ModelState.IsValid)
+    //     {
+    //         try
+    //         {
+    //             contratoNuevo.estado = 1;
+    //             _contratoRepo.AgregarContrato(contratoNuevo);
+
+    //             var inmueble = _inmuebleRepo.ObtenerInmuebleId(contratoNuevo.id_inmueble);
+    //             if (inmueble != null)
+    //             {
+    //                 inmueble.estado = 0;
+    //                 _inmuebleRepo.ActualizarInmueble(inmueble);
+    //             }
+    //             TempData["Exito"] = "Contrato agregado con éxito";
+    //             return RedirectToAction("Index");
+    //         }
+    //         catch (Exception ex)
+    //         {
+    //             ModelState.AddModelError("", "Ocurrió un error al agregar el contrato: " + ex.Message);
+    //         }
+    //     }
+
+    //     ViewBag.Inquilinos = new SelectList(_inquilinoRepo.ObtenerInquilinos(), "id", "nombre", contratoNuevo.id_inquilino);
+    //     ViewBag.Inmuebles = new SelectList(_inmuebleRepo.ObtenerInmueblesDisponibles(), "id", "direccion", contratoNuevo.id_inmueble);
+
+    //     return View("Agregar", contratoNuevo);
+    // }
     [HttpPost]
     public IActionResult Agregar(Contrato contratoNuevo)
     {
-        if (ModelState.IsValid)
+        contratoNuevo.estado = 1;
+        _contratoRepo.AgregarContrato(contratoNuevo);
+        var inmueble = _inmuebleRepo.ObtenerInmuebleId(contratoNuevo.id_inmueble);
+        if (inmueble != null)
         {
-            _contratoRepo.AgregarContrato(contratoNuevo);
-            TempData["Exito"] = "Contrato agregado con éxito";
-            return RedirectToAction("Index");
+            inmueble.estado = 3;
+            _inmuebleRepo.ActualizarInmueble(inmueble);
         }
-        return View("Agregar", contratoNuevo);
+
+        TempData["Exito"] = "Contrato agregado con éxito";
+        return RedirectToAction("Index");
     }
+
 }

@@ -21,6 +21,7 @@
             <th>Monto</th>
             <th>Fecha Inicio</th>
             <th>Fecha Fin</th>
+            <th>Estado</th>
             <th>Acciones</th>
         </tr>
     </thead>
@@ -35,8 +36,25 @@
                 <td>@c.fecha_inicio.ToShortDateString()</td>
                 <td>@c.fecha_fin.ToShortDateString()</td>
                 <td>
+                    @if (c.estado == 1)
+                    {
+                        <span class="badge bg-success">Activo</span>
+                    }
+                    else if (c.estado == 2)
+                    {
+                        <span class="badge bg-warning text-dark">Finalizado</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">Terminado</span>
+                    }
+                </td>
+                <td>
                     @Html.ActionLink("Detalles", "Detalles", new { id = c.id }, new { @class = "btn btn-info btn-sm" })
-                    @Html.ActionLink("Terminar Anticipado", "TerminarAnticipado", new { id = c.id }, new { @class = "btn btn-warning btn-sm" })
+                    @if (c.estado == 1)
+                    {
+                        @Html.ActionLink("Terminar Anticipado", "TerminarAnticipado", new { id = c.id }, new { @class = "btn btn-warning btn-sm" })
+                    }
                 </td>
             </tr>
         }
