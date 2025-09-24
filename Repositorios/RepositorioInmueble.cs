@@ -178,9 +178,9 @@ namespace _net_integrador.Repositorios
                         p.nombre AS nombrePropietario, p.apellido AS apellidoPropietario, 
                         t.tipo AS tipoInmueble
                     FROM inmueble i
-                    JOIN propietario p ON i.id_propietario = p.id AND p.estado = 
+                    JOIN propietario p ON i.id_propietario = p.id AND p.estado = 1
                     JOIN tipo_inmueble t ON i.id_tipo = t.id
-                    WHERE i.estado = 1 AND i.id NOT IN (SELECT id_inmueble FROM contrato WHERE estado = 'Disponible')";
+                    WHERE i.estado = 'Disponible' AND i.id NOT IN (SELECT id_inmueble FROM contrato WHERE estado = 1)";
 
                 using (MySqlCommand command = new MySqlCommand(query, connection))
                 {
