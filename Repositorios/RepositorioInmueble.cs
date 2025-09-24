@@ -29,7 +29,7 @@ namespace _net_integrador.Repositorios
                             uso = Enum.Parse<UsoInmueble>(reader.GetString("uso")),
                             id_tipo = reader.GetInt32("id_tipo"),
                             precio = reader.GetDecimal("precio"),
-                            estado = reader.GetInt32("estado"),
+                            estado = Enum.Parse<Estado>(reader.GetString("estado")),
                             direccion = reader.GetString("direccion"),
                             propietario = new Propietario
                             {
@@ -73,7 +73,8 @@ namespace _net_integrador.Repositorios
                             eje_x = reader.GetString("eje_x"),
                             eje_y = reader.GetString("eje_y"),
                             precio = reader.GetDecimal("precio"),
-                            estado = reader.GetInt32("estado")
+                            estado = Enum.Parse<Estado>(reader.GetString("estado"))
+
                         };
                     }
                     connection.Close();
@@ -141,7 +142,7 @@ namespace _net_integrador.Repositorios
         {
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
-                var query = "UPDATE inmueble SET estado = 0 WHERE id = @id";
+                var query = "UPDATE inmueble SET estado = 'Suspendido' WHERE id = @id";
                 using (var command = new MySqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@id", id);
@@ -155,7 +156,7 @@ namespace _net_integrador.Repositorios
         {
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
-                var query = "UPDATE inmueble SET estado = 1 WHERE id = @id";
+                var query = "UPDATE inmueble SET estado = 'Disponible' WHERE id = @id";
                 using (var command = new MySqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@id", id);
@@ -177,9 +178,9 @@ namespace _net_integrador.Repositorios
                         p.nombre AS nombrePropietario, p.apellido AS apellidoPropietario, 
                         t.tipo AS tipoInmueble
                     FROM inmueble i
-                    JOIN propietario p ON i.id_propietario = p.id AND p.estado = 1
+                    JOIN propietario p ON i.id_propietario = p.id AND p.estado = 
                     JOIN tipo_inmueble t ON i.id_tipo = t.id
-                    WHERE i.estado = 1 AND i.id NOT IN (SELECT id_inmueble FROM contrato WHERE estado = 1)";
+                    WHERE i.estado = 1 AND i.id NOT IN (SELECT id_inmueble FROM contrato WHERE estado = 'Disponible')";
 
                 using (MySqlCommand command = new MySqlCommand(query, connection))
                 {
@@ -193,7 +194,7 @@ namespace _net_integrador.Repositorios
                             uso = Enum.Parse<UsoInmueble>(reader.GetString("uso")),
                             id_tipo = reader.GetInt32("id_tipo"),
                             precio = reader.GetDecimal("precio"),
-                            estado = reader.GetInt32("estado"),
+                            estado = Enum.Parse<Estado>(reader.GetString("estado")),
                             direccion = reader.GetString("direccion"),
                             propietario = new Propietario
                             {
@@ -236,7 +237,7 @@ namespace _net_integrador.Repositorios
                             eje_x = reader.GetString("eje_x"),
                             eje_y = reader.GetString("eje_y"),
                             precio = reader.GetDecimal("precio"),
-                            estado = reader.GetInt32("estado")
+                            estado = Enum.Parse<Estado>(reader.GetString("estado"))
                         });
                     }
                     connection.Close();

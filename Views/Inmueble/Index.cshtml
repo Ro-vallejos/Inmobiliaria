@@ -52,15 +52,10 @@
                 <td>@i.uso</td>
                 <td>@i.tipoInmueble?.tipo</td>
                 <td>@(i.precio.HasValue ? $"${i.precio.Value:0.00}" : "Sin precio")</td>
-                <td>
-                    @(i.estado == 1 ? "Disponible" :
-                      i.estado == 0 ? "Suspendido" :
-                      i.estado == 3 ? "Alquilado" : "Desconocido")
-                </td>
+                <td>@i.estado</td>
                 <td>
                     @Html.ActionLink("Editar", "Editar", new { id = i.id }, new { @class = "btn btn-primary btn-sm" })
-
-                    @if (i.estado == 1)
+                @if (i.estado == Estado.Disponible)
                     {
                         @Html.ActionLink(
                             "Suspender",
@@ -68,7 +63,7 @@
                             new { id = i.id },
                             new { @class = "btn btn-warning btn-sm", onclick = "return confirm('¿Seguro que querés suspender este inmueble?');" })
                     }
-                    else if (i.estado == 0)
+                    else if (i.estado == Estado.Suspendido)
                     {
                         @Html.ActionLink(
                             "Activar",
@@ -76,6 +71,7 @@
                             new { id = i.id },
                             new { @class = "btn btn-success btn-sm", onclick = "return confirm('¿Seguro que querés activar este inmueble?');" })
                     }
+
 
                     @Html.ActionLink("Detalles", "Detalles", new { id = i.id }, new { @class = "btn btn-info btn-sm" })
                 </td>

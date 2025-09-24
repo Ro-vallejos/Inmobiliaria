@@ -33,6 +33,10 @@ public class InmuebleController : Controller
         }).ToList();
 
         ViewBag.Propietarios = new SelectList(propietarios, "Id", "Nombre");
+        if (TempData["Exito"] != null)
+        {
+            ViewBag.Exito = TempData["Exito"];
+        } 
         return View(listaInmuebles);
     }
 
@@ -99,7 +103,6 @@ public class InmuebleController : Controller
     {
         if (ModelState.IsValid)
         {
-            inmuebleNuevo.estado = 1;
             _repositorioInmueble.AgregarInmueble(inmuebleNuevo);
             TempData["Exito"] = "Inmueble agregado con éxito";
             return RedirectToAction("Index");

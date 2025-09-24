@@ -44,13 +44,19 @@ namespace _net_integrador.Models
 
 
         public decimal? precio { get; set; }
-        public int estado { get; set; }
+        public Estado estado { get; set; }
 
 
     }
-     public enum UsoInmueble
-        {
-            Comercial=1,
-            Residencial=2
-        }
+    public enum UsoInmueble
+    {
+        Comercial = 1,
+        Residencial = 2
+    }
+    public enum Estado
+    {
+        Disponible= 1,
+        Suspendido= 2,
+        Alquilado= 3
+    }
 }

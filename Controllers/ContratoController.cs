@@ -49,31 +49,31 @@ public class ContratoController : Controller
         var contratoSeleccionado = _contratoRepo.ObtenerContratoId(id);
         var pagosDelContrato = _pagoRepo.ObtenerPagosPorContrato(id);
         ViewBag.Pagos = pagosDelContrato;
-        return View(contratoSeleccionado);
+          return View(contratoSeleccionado);
     }
 
-    [HttpPost]
-    public IActionResult TerminarAnticipado(int id)
-    {
-        var contrato = _contratoRepo.ObtenerContratoId(id);
-        if (contrato == null)
-        {
-            return NotFound();
-        }
+    // [HttpPost]
+    // public IActionResult TerminarAnticipado(int id)
+    // {
+    //     var contrato = _contratoRepo.ObtenerContratoId(id);
+    //     if (contrato == null)
+    //     {
+    //         return NotFound();
+    //     }
 
-        contrato.estado = 0;
-        _contratoRepo.ActualizarContrato(contrato);
-        TempData["Exito"] = "Contrato terminado con éxito";
+    //     contrato.estado = 0;
+    //     _contratoRepo.ActualizarContrato(contrato);
+    //     TempData["Exito"] = "Contrato terminado con éxito";
 
-        var inmueble = _inmuebleRepo.ObtenerInmuebleId(contrato.id_inmueble);
-        if (inmueble != null)
-        {
-            inmueble.estado = 1;
-            _inmuebleRepo.ActualizarInmueble(inmueble);
-        }
+    //     var inmueble = _inmuebleRepo.ObtenerInmuebleId(contrato.id_inmueble);
+    //     if (inmueble != null)
+    //     {
+    //         inmueble.estado = 1;
+    //         _inmuebleRepo.ActualizarInmueble(inmueble);
+    //     }
 
-        return RedirectToAction("Index");
-    }
+    //     return RedirectToAction("Index");
+    // }
 
     // [HttpPost]
     // public IActionResult Agregar(Contrato contratoNuevo)
@@ -105,20 +105,20 @@ public class ContratoController : Controller
 
     //     return View("Agregar", contratoNuevo);
     // }
-    [HttpPost]
-    public IActionResult Agregar(Contrato contratoNuevo)
-    {
-        contratoNuevo.estado = 1;
-        _contratoRepo.AgregarContrato(contratoNuevo);
-        var inmueble = _inmuebleRepo.ObtenerInmuebleId(contratoNuevo.id_inmueble);
-        if (inmueble != null)
-        {
-            inmueble.estado = 3;
-            _inmuebleRepo.ActualizarInmueble(inmueble);
-        }
+    // [HttpPost]
+    // public IActionResult Agregar(Contrato contratoNuevo)
+    // {
+    //     contratoNuevo.estado = 1;
+    //     _contratoRepo.AgregarContrato(contratoNuevo);
+    //     var inmueble = _inmuebleRepo.ObtenerInmuebleId(contratoNuevo.id_inmueble);
+    //     if (inmueble != null)
+    //     {
+    //         inmueble.estado = 3;
+    //         _inmuebleRepo.ActualizarInmueble(inmueble);
+    //     }
 
-        TempData["Exito"] = "Contrato agregado con éxito";
-        return RedirectToAction("Index");
-    }
+    //     TempData["Exito"] = "Contrato agregado con éxito";
+    //     return RedirectToAction("Index");
+    // }
 
 }
