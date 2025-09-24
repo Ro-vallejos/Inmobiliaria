@@ -28,13 +28,18 @@ public class InmuebleController : Controller
         var listaInmuebles = _repositorioInmueble.ObtenerInmuebles();
         return View(listaInmuebles);
     }
- 
+
     public IActionResult Activar(int id)
     {
         _repositorioInmueble.ActivarOferta(id);
         return RedirectToAction("Index");
     }
-
+  
+    public IActionResult Detalles(int id)
+    {
+        var inmueble = _repositorioInmueble.ObtenerInmuebleId(id);
+        return View(inmueble);
+    }
     [HttpGet]
     public IActionResult Agregar()
     {
@@ -47,7 +52,7 @@ public class InmuebleController : Controller
     [HttpGet]
     public IActionResult Editar(int id)
     {
-        var inmuebleSeleccionado = _repositorioInmueble.ObtenerInmuebleId (id);
+        var inmuebleSeleccionado = _repositorioInmueble.ObtenerInmuebleId(id);
         return View(inmuebleSeleccionado);
     }
 
@@ -56,7 +61,7 @@ public class InmuebleController : Controller
         _repositorioInmueble.SuspenderOferta(id);
         return RedirectToAction("Index");
     }
-
+   
     [HttpPost]
     public IActionResult Editar(Inmueble inmuebleEditado)
     {
@@ -70,25 +75,27 @@ public class InmuebleController : Controller
     {
         if (ModelState.IsValid)
         {
-           
-
             inmuebleNuevo.estado = 1;
             _repositorioInmueble.AgregarInmueble(inmuebleNuevo);
             TempData["Exito"] = "Inmueble agregado con éxito";
             return RedirectToAction("Index");
         }
-        if (!ModelState.IsValid)
-        {
-             var errores = string.Join("; ", ModelState.Values
-        .SelectMany(v => v.Errors)
-        .Select(e => e.ErrorMessage));
-    throw new Exception($"Modelo inválido: {errores}");
-            
-           
-        }
 
+        if (inmuebleNuevo.id_propietario <= 0)
+        {
+            ModelState.AddModelError("id_propietario", "Debe seleccionar un propietario");
+        }
+        if (inmuebleNuevo.id_tipo <= 0)
+        {
+            ModelState.AddModelError("id_tipo", "Debe seleccionar un tipo de inmueble");
+        }
         ViewBag.TiposInmueble = new SelectList(_repositorioTipoInmueble.ObtenerTiposInmueble(), "id", "tipo", inmuebleNuevo.id_tipo);
-        ViewBag.Propietarios = new SelectList(_repositorioPropietario.ObtenerPropietarios(), "id", "NombreCompleto", inmuebleNuevo.id_propietario);
+
+        var propietarios = _repositorioPropietario.ObtenerPropietarios().Where(p => p.estado == 1).ToList();
+
+        ViewBag.Propietarios = new SelectList(propietarios, "id", "NombreCompleto");
+
         return View("Agregar", inmuebleNuevo);
     }
+
 }

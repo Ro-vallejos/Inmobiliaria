@@ -4,6 +4,7 @@
     ViewData["Title"] = "Nuevo Inmueble";
 }
 
+
 <h2>Agregar Inmueble</h2>
 
 <form asp-action="Agregar" method="post">
@@ -13,25 +14,25 @@
         (SelectList)ViewBag.Propietarios,
                 "Seleccione un propietario",
                 new { @class = "form-control" })
-        @Html.ValidationMessageFor(m => m.id_propietario, "", new { @class = "text-danger" })
+        @Html.ValidationMessageFor(m => m.id_propietario, message: "", new { @class = "text-danger" })
     </div>
 
     <div class="form-group">
         @Html.LabelFor(m => m.direccion, "Dirección")
         @Html.TextBoxFor(m => m.direccion, new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.direccion, message: "", new { @class = "text-danger" })
+
     </div>
     <div class="form-group">
         @Html.LabelFor(m => m.uso, "Uso de Inmueble")
         <br>
         <div class="form-check form-check-inline">
             <label class="form-check-label" for="Comercial">Comercial</label>
-           @*@ @Html.RadioButtonFor(m => m.uso, "Comercial", new { @class = "form-check-input", id = "COMERCIAL" })*@
             @Html.RadioButtonFor(m => m.uso, (int)_net_integrador.Models.UsoInmueble.Comercial, new { @id = "Comercial" })
 
         </div>
         <div class="form-check form-check-inline">
             <label class="form-check-label" for="Residencial">Residencial</label>
-            @*@Html.RadioButtonFor(m => m.uso, "Residencial", new { @class = "form-check-input", id = "RESIDENCIA" })*@
             @Html.RadioButtonFor(m => m.uso, (int)_net_integrador.Models.UsoInmueble.Residencial, new { @id = "Residencial" })
 
         </div>

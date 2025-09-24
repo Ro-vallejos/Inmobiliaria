@@ -55,7 +55,7 @@
                             new { id = i.id },
                             new { @class = "btn btn-warning btn-sm", onclick = "return confirm('¿Seguro que querés suspender este inmueble?');" })
                     }
-                    else
+                    else if (i.estado == 2)
                     {
                         @Html.ActionLink(
                             "Activar",
@@ -63,6 +63,8 @@
                             new { id = i.id },
                             new { @class = "btn btn-success btn-sm", onclick = "return confirm('¿Seguro que querés activar este inmueble?');" })
                     }
+                    @Html.ActionLink("Detalles", "Detalles", new { id = i.id }, new { @class = "btn btn-primary btn-sm" })
+
                 </td>
             </tr>
         }

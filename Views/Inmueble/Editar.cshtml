@@ -10,6 +10,7 @@
 {
     @Html.HiddenFor(m => m.id)
     @Html.HiddenFor(m => m.estado)
+    @Html.HiddenFor(m=> m.id_propietario)
 
     <div class="form-group">
         @Html.LabelFor(m => m.direccion, "Dirección")
@@ -31,7 +32,7 @@
 
     </div>
     <div class="form-group">
-        @Html.LabelFor(m => m.id_tipo)
+        @Html.LabelFor(m => m.id_tipo, "Tipo de Inmueble")
         @Html.TextBoxFor(m => m.id_tipo, new { @class = "form-control" })
     </div>
     <div class="form-group">

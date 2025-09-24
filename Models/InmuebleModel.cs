@@ -9,8 +9,10 @@ namespace _net_integrador.Models
     {
         public int id { get; set; }
         public Propietario? propietario { get; set; }
-        [Required]
-        public int id_propietario { get; set; }
+        [Required(ErrorMessage = "Este campo es obligatorio")]
+        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un propietario")]
+
+        public int? id_propietario { get; set; }
         //public Propietario Propietario { get; set; } = new Propietario();
         [Required(ErrorMessage = "Este campo es obligatorio")]
 
@@ -23,7 +25,8 @@ namespace _net_integrador.Models
         public UsoInmueble uso { get; set; }
         public TipoInmueble? tipoInmueble { get; set; }
         [Required(ErrorMessage = "Este campo es obligatorio")]
-        public int id_tipo { get; set; }
+        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un tipo de inmueble")]
+        public int? id_tipo { get; set; }
 
 
         [Required(ErrorMessage = "La cantidad de ambientes es obligatoria")]
