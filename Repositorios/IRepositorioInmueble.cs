@@ -12,5 +12,6 @@ namespace _net_integrador.Repositorios
         void SuspenderOferta(int id);
         void ActivarOferta(int id);
         List<Inmueble> ObtenerInmueblesDisponibles();
+        List<Inmueble> ObtenerInmueblesPorPropietario(int propietarioId);
     }
 }

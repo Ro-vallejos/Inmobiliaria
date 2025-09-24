@@ -26,6 +26,13 @@ public class InmuebleController : Controller
     public IActionResult Index()
     {
         var listaInmuebles = _repositorioInmueble.ObtenerInmuebles();
+        var propietarios = _repositorioPropietario.ObtenerPropietarios()
+        .Select(p => new {
+            Id = p.id,
+            Nombre = $"{p.nombre} {p.apellido}"
+        }).ToList();
+
+        ViewBag.Propietarios = new SelectList(propietarios, "Id", "Nombre");
         return View(listaInmuebles);
     }
 
@@ -40,6 +47,23 @@ public class InmuebleController : Controller
         var inmueble = _repositorioInmueble.ObtenerInmuebleId(id);
         return View(inmueble);
     }
+
+    public IActionResult PorPropietario(int propietarioId)
+    {
+        var listaInmuebles = _repositorioInmueble.ObtenerInmueblesPorPropietario(propietarioId);
+
+        var propietarios = _repositorioPropietario.ObtenerPropietarios()
+            .Select(p => new {
+                Id = p.id,
+                Nombre = $"{p.nombre} {p.apellido}"
+            }).ToList();
+
+        ViewBag.Propietarios = new SelectList(propietarios, "Id", "Nombre", propietarioId);
+        ViewBag.PropietarioId = propietarioId;
+
+        return View("Index", listaInmuebles);
+    }
+
     [HttpGet]
     public IActionResult Agregar()
     {

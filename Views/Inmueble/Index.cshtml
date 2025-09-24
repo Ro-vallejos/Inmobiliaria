@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Inmuebles";
+    var propietarioIdSeleccionado = ViewBag.PropietarioId as int?;
 }
 
 @if (TempData["Exito"] != null)
@@ -19,6 +20,14 @@
 <p>
     <a class="btn btn-success" asp-action="Agregar">Agregar Inmueble</a>
 </p>
+
+<div class="d-flex align-items-center mb-3">
+    <label for="propietarioSelect" class="me-2">Filtrar por propietario:</label>
+    <select id="propietarioSelect" class="form-select me-2" asp-items="@ViewBag.Propietarios">
+        <option value="">Todos los propietarios</option>
+    </select>
+    <button id="btnFiltrar" class="btn btn-primary">Filtrar</button>
+</div>
 
 <table class="table table-striped">
     <thead>
@@ -42,16 +51,15 @@
                 <td>@i.direccion</td>
                 <td>@i.uso</td>
                 <td>@i.tipoInmueble?.tipo</td>
-                @*<td>@i.precio.ToString("C")</td>-->*@
                 <td>@(i.precio.HasValue ? $"${i.precio.Value:0.00}" : "Sin precio")</td>
                 <td>
                     @(i.estado == 1 ? "Disponible" :
-                    i.estado == 0 ? "Suspendido" :
-                    i.estado == 3 ? "Alquilado" : "Desconocido")
+                      i.estado == 0 ? "Suspendido" :
+                      i.estado == 3 ? "Alquilado" : "Desconocido")
                 </td>
-
                 <td>
                     @Html.ActionLink("Editar", "Editar", new { id = i.id }, new { @class = "btn btn-primary btn-sm" })
+
                     @if (i.estado == 1)
                     {
                         @Html.ActionLink(
@@ -60,7 +68,7 @@
                             new { id = i.id },
                             new { @class = "btn btn-warning btn-sm", onclick = "return confirm('¿Seguro que querés suspender este inmueble?');" })
                     }
-                    else if (i.estado == 2)
+                    else if (i.estado == 0)
                     {
                         @Html.ActionLink(
                             "Activar",
@@ -68,10 +76,29 @@
                             new { id = i.id },
                             new { @class = "btn btn-success btn-sm", onclick = "return confirm('¿Seguro que querés activar este inmueble?');" })
                     }
-                    @Html.ActionLink("Detalles", "Detalles", new { id = i.id }, new { @class = "btn btn-primary btn-sm" })
 
+                    @Html.ActionLink("Detalles", "Detalles", new { id = i.id }, new { @class = "btn btn-info btn-sm" })
                 </td>
             </tr>
         }
     </tbody>
 </table>
+
+@section Scripts {
+    <script>
+        var propietarioSelect = document.getElementById("propietarioSelect");
+        var seleccionado = '@(propietarioIdSeleccionado?.ToString() ?? "")';
+        if (seleccionado) {
+            propietarioSelect.value = seleccionado;
+        }
+
+        document.getElementById("btnFiltrar").addEventListener("click", function () {
+            var propietarioId = propietarioSelect.value;
+            if (propietarioId) {
+                window.location.href = '@Url.Action("PorPropietario", "Inmueble")' + '?propietarioId=' + propietarioId;
+            } else {
+                window.location.href = '@Url.Action("Index", "Inmueble")';
+            }
+        });
+    </script>
+}
