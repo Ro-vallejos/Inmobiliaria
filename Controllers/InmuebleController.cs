@@ -31,12 +31,8 @@ public class InmuebleController : Controller
             Id = p.id,
             Nombre = $"{p.nombre} {p.apellido}"
         }).ToList();
-
+    
         ViewBag.Propietarios = new SelectList(propietarios, "Id", "Nombre");
-        if (TempData["Exito"] != null)
-        {
-            ViewBag.Exito = TempData["Exito"];
-        } 
         return View(listaInmuebles);
     }
 

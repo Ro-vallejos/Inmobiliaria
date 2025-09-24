@@ -101,7 +101,7 @@ namespace _net_integrador.Repositorios
                         command.Parameters.AddWithValue("@eje_x", inmuebleNuevo.eje_x);
                         command.Parameters.AddWithValue("@eje_y", inmuebleNuevo.eje_y);
                         command.Parameters.AddWithValue("@precio", inmuebleNuevo.precio);
-                        command.Parameters.AddWithValue("@estado", inmuebleNuevo.estado);
+                        command.Parameters.AddWithValue("@estado", (int)Estado.Disponible);
                         command.ExecuteNonQuery();
                         connection.Close();
                         Console.WriteLine("Inmueble agregado correctamente.");
