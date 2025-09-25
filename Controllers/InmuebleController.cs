@@ -27,6 +27,7 @@ public class InmuebleController : Controller
     {
         var listaInmuebles = _repositorioInmueble.ObtenerInmuebles();
         var propietarios = _repositorioPropietario.ObtenerPropietarios()
+        .Where(p => p.estado == 1)
         .Select(p => new {
             Id = p.id,
             Nombre = $"{p.nombre} {p.apellido}"
