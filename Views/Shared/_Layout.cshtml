@@ -52,7 +52,7 @@
                                     </a>
                                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                                         <li><span class="dropdown-item-text">@User.Identity.Name!</span></li>
-                                        <li><a class="dropdown-item" href="#">Editar mi perfil</a></li>
+                                        <li><a class="dropdown-item" href="@Url.Action("EditarPerfil", "Usuario")">Editar mi perfil</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item" asp-area="" asp-controller="Usuario" asp-action="Logout">Cerrar Sesión</a></li>
                                     </ul>

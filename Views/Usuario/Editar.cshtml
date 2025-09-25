@@ -7,7 +7,7 @@
 <div class="container mt-4">
     <h2>Editar Usuario</h2>
 
-    @using (Html.BeginForm("Editar", "Usuario", FormMethod.Post))
+    @using (Html.BeginForm("EditarPerfil", "Usuario", FormMethod.Post))
     {
         @Html.HiddenFor(m => m.id)
         @Html.HiddenFor(m => m.estado)

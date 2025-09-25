@@ -14,12 +14,14 @@ builder.Services.AddSession(options => {
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.LoginPath = "/Usuario/Login"; 
+        options.LoginPath = "/Usuario/Login";
+        options.LogoutPath = "/Usuarios/Logout";
+		options.AccessDeniedPath = "/Home/Restringido"; 
     });
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin")); 
+    options.AddPolicy("Administrador", policy => policy.RequireRole("Admin")); 
 });
 
 builder.Services.AddTransient<IRepositorioInmueble, RepositorioInmueble>();
