@@ -24,6 +24,7 @@ public class Inquilino
    [RegularExpression(@"^(\d{8,12})?$", ErrorMessage = "El teléfono no es válido")]
     public string telefono { get; set; }= string.Empty;
     public int estado { get; set; }
+public string? NombreCompleto => $"{nombre} {apellido}";
 
 
 }

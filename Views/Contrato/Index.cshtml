@@ -18,7 +18,7 @@
             <th>Código</th>
             <th>Inquilino</th>
             <th>Inmueble</th>
-            <th>Monto</th>
+            <th>Monto Mensual</th>
             <th>Fecha Inicio</th>
             <th>Fecha Fin</th>
             <th>Estado</th>
@@ -50,11 +50,16 @@
                     }
                 </td>
                 <td>
+                    @Html.ActionLink("Editar", "Editar", new { id = c.id }, new { @class = "btn btn-primary btn-sm" })
                     @Html.ActionLink("Detalles", "Detalles", new { id = c.id }, new { @class = "btn btn-info btn-sm" })
+                    @Html.ActionLink("Renovar", "Renovar", new { id = c.id }, new { @class = "btn btn-danger btn-sm" })
+
                     @if (c.estado == 1)
                     {
                         @Html.ActionLink("Terminar Anticipado", "TerminarAnticipado", new { id = c.id }, new { @class = "btn btn-warning btn-sm" })
                     }
+                    @Html.ActionLink("Pagos", "Renovar", new { id = c.id }, new { @class = "btn btn-danger btn-sm" })
+
                 </td>
             </tr>
         }

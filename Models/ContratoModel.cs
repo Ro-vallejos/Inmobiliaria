@@ -8,10 +8,10 @@ namespace _net_integrador.Models
     {
         public int id { get; set; }
         public int id_inquilino { get; set; }
-        public Inquilino Inquilino { get; set; } = new Inquilino();
+        public Inquilino? Inquilino { get; set; } 
         [Required(ErrorMessage = "Este campo es obligatorio ")]
         public int id_inmueble { get; set; }
-        public Inmueble Inmueble { get; set; } = new Inmueble();
+        public Inmueble? Inmueble { get; set; }
         [Required(ErrorMessage = "Este campo es obligatorio ")]
         [Range(0, double.MaxValue, ErrorMessage = "Ingrese solo números positivos")]
         public decimal monto_mensual { get; set; }

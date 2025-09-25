@@ -155,11 +155,8 @@ public class RepositorioContrato : RepositorioBase, IRepositorioContrato
                 command.Parameters.AddWithValue("@fecha_inicio", contrato.fecha_inicio);
                 command.Parameters.AddWithValue("@fecha_fin", contrato.fecha_fin);
                 command.Parameters.AddWithValue("@monto_mensual", contrato.monto_mensual);
-
-                // Si multa o fecha_terminacion_anticipada son null, se inserta DBNull
-                command.Parameters.AddWithValue("@multa", contrato.multa.HasValue ? contrato.multa.Value : (object)DBNull.Value);
-                command.Parameters.AddWithValue("@fecha_terminacion_anticipada", contrato.fecha_terminacion_anticipada.HasValue ? contrato.fecha_terminacion_anticipada.Value : (object)DBNull.Value);
-
+                command.Parameters.AddWithValue("@multa", DBNull.Value);
+                command.Parameters.AddWithValue("@fecha_terminacion_anticipada", DBNull.Value);
                 command.Parameters.AddWithValue("@estado", contrato.estado);
 
                 command.ExecuteNonQuery();
@@ -170,6 +167,7 @@ public class RepositorioContrato : RepositorioBase, IRepositorioContrato
 
     public void ActualizarContrato(Contrato contrato)
     {
+        
         using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
             var sql = @"
@@ -204,5 +202,35 @@ public class RepositorioContrato : RepositorioBase, IRepositorioContrato
             }
         }
     }
+    public List<int> ObtenerInmueblesOcupados(DateTime inicio, DateTime fin)
+    {
+        var ids = new List<int>();
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
+        {
+            string sql = @"SELECT id_inmueble FROM contrato
+                               WHERE NOT (@fin <= fecha_inicio OR @inicio >= fecha_fin)";
+
+            using (MySqlCommand command = new MySqlCommand(sql, connection))
+            {
+                connection.Open();
+
+                command.Parameters.AddWithValue("@inicio", inicio);
+                command.Parameters.AddWithValue("@fin", fin);
+                var reader = command.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    ids.Add(reader.GetInt32(0));
+                }
+                connection.Close();
+
+            }
+
+
+        }
+        return ids;
+    }
+
+    
     
 }

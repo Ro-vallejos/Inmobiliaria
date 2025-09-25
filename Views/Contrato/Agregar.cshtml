@@ -8,36 +8,59 @@
     <h2>Agregar Nuevo Contrato</h2>
 
     <form asp-action="Agregar" method="post" class="mt-4">
+
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
         <div class="form-group mb-3">
-            <label asp-for="id_inquilino" class="control-label"></label>
+            <label asp-for="id_inquilino" class="control-label">Seleccione el inquilino </label>
             <select asp-for="id_inquilino" asp-items="@ViewBag.Inquilinos" class="form-control">
                 <option value="">Seleccione un inquilino</option>
             </select>
             <span asp-validation-for="id_inquilino" class="text-danger"></span>
         </div>
         <div class="form-group mb-3">
-            <label asp-for="id_inmueble" class="control-label"></label>
-            <select asp-for="id_inmueble" asp-items="@ViewBag.Inmuebles" class="form-control">
-                <option value="">Seleccione un inmueble</option>
-            </select>
-            <span asp-validation-for="id_inmueble" class="text-danger"></span>
-        </div>
-        <div class="form-group mb-3">
-            <label asp-for="fecha_inicio" class="control-label"></label>
+            <label asp-for="fecha_inicio" class="control-label">Ingrese la fecha de inicio del contrato</label>
             <input asp-for="fecha_inicio" class="form-control" type="date" />
             <span asp-validation-for="fecha_inicio" class="text-danger"></span>
         </div>
         <div class="form-group mb-3">
-            <label asp-for="fecha_fin" class="control-label"></label>
+            <label asp-for="fecha_fin" class="control-label">Ingrese la fecha de finalización del contrato</label>
             <input asp-for="fecha_fin" class="form-control" type="date" />
             <span asp-validation-for="fecha_fin" class="text-danger"></span>
         </div>
-        <div class="form-group mb-3">
-            <label asp-for="monto_mensual" class="control-label"></label>
-            <input asp-for="monto_mensual" class="form-control" />
+         <button type="submit" name="actionType" value="BuscarInmuebles" class="btn btn-info mt-2">
+    Buscar inmuebles disponibles
+</button>
+
+    <hr/>
+     @if (ViewBag.InmueblesDisponibles != null && ((List<_net_integrador.Models.Inmueble>)ViewBag.InmueblesDisponibles).Any())
+    {
+        var inmuebles = (List<_net_integrador.Models.Inmueble>)ViewBag.InmueblesDisponibles;
+        <hr />
+        <h4>Seleccione Inmueble</h4>
+        <div class="form-group">
+            <select asp-for="id_inmueble" class="form-control">
+                <option value="">-- Seleccione Inmueble --</option>
+                @foreach (var inmueble in inmuebles)
+                {
+                    <option value="@inmueble.id">@inmueble.direccion - @inmueble.ambientes amb. - @inmueble.precio $</option>
+                }
+            </select>
+            <span asp-validation-for="id_inmueble" class="text-danger"></span>
+        </div>
+
+        <div class="form-group mt-2">
+            <label for="monto_mensual">Monto Mensual</label>
+            <input asp-for="monto_mensual" class="form-control" type="number" step="0.01"/>
             <span asp-validation-for="monto_mensual" class="text-danger"></span>
         </div>
+
+        <button type="submit" name="actionType" value="CrearContrato" class="btn btn-success mt-2">Crear Contrato</button>
+    }
+      
+    <div class="form-group">
+        <label for="monto_mensual">Monto Mensual</label>
+        <input asp-for="monto_mensual" type="number" class="form-control" step="0.01" />
+    </div>
         <div class="form-group mt-3">
             <button type="submit" class="btn btn-primary">Guardar</button>
             <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
