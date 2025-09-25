@@ -298,7 +298,6 @@ namespace _net_integrador.Repositorios
                         });
                     }
                 }
-                cmd.ExecuteNonQuery();
                 connection.Close();
             }
             return inmuebles;
