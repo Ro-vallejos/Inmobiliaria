@@ -266,7 +266,7 @@ namespace _net_integrador.Repositorios
 
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
-                string sql = "SELECT id, direccion, id_propietario, uso, id_tipo, ambientes, eje_x, eje_y, precio, estado FROM inmueble WHERE estado!=3 AND id NOT IN (SELECT id_inmueble FROM contrato WHERE NOT (@fin <= fecha_inicio OR @inicio >= fecha_fin) AND (fecha_terminacion_anticipada IS NULL OR fecha_terminacion_anticipada > @inicio) AND estado = 1)";
+                string sql = "SELECT id, direccion, id_propietario, uso, id_tipo, ambientes, eje_x, eje_y, precio, estado FROM inmueble WHERE estado!=2 AND id NOT IN (SELECT id_inmueble FROM contrato WHERE NOT (@fin <= fecha_inicio OR @inicio >= fecha_fin) AND (fecha_terminacion_anticipada IS NULL OR fecha_terminacion_anticipada > @inicio) AND estado = 1)";
 
              using (MySqlCommand cmd = new MySqlCommand(sql, connection))
         {
