@@ -54,6 +54,25 @@ public class ContratoController : Controller
         return View(contratoSeleccionado);
     }
 
+    [HttpGet]
+    public IActionResult Editar(int id)
+    {
+        var contrato = _contratoRepo.ObtenerContratoId(id);
+        if (contrato == null)
+        {
+            return NotFound();
+        }
+
+        var inquilinos = _inquilinoRepo.ObtenerInquilinos()
+            .Select(i => new SelectListItem { Value = i.id.ToString(), Text = i.NombreCompleto }).ToList();
+        ViewBag.Inquilinos = inquilinos;
+
+        var inmueble = _inmuebleRepo.ObtenerInmuebleId(contrato.id_inmueble);
+        ViewBag.InmuebleActual = inmueble;
+
+        return View(contrato);
+    }
+
     [HttpPost]
     public IActionResult Agregar(Contrato contrato, string actionType)
     {
@@ -94,6 +113,25 @@ public class ContratoController : Controller
         return RedirectToAction("Index");
     }
 
+    [HttpPost]
+    public IActionResult Editar(Contrato contratoEditado)
+    {
+        if (ModelState.IsValid)
+        {
+            _contratoRepo.ActualizarContrato(contratoEditado);
+            TempData["Exito"] = "Contrato actualizado con éxito.";
+            return RedirectToAction("Index");
+        }
+
+        var inquilinos = _inquilinoRepo.ObtenerInquilinos()
+            .Select(i => new SelectListItem { Value = i.id.ToString(), Text = i.NombreCompleto }).ToList();
+        ViewBag.Inquilinos = inquilinos;
+
+        var inmueble = _inmuebleRepo.ObtenerInmuebleId(contratoEditado.id_inmueble);
+        ViewBag.InmuebleActual = inmueble;
+
+        return View(contratoEditado);
+    }
     // [HttpPost]
     // public IActionResult TerminarAnticipado(int id)
     // {
