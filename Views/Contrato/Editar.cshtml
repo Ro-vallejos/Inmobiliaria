@@ -10,19 +10,28 @@
     <form asp-action="Editar" method="post" class="mt-4">
         @Html.HiddenFor(m => m.id)
         @Html.HiddenFor(m => m.estado)
-
+        @Html.HiddenFor(m=> m.id_inquilino)
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
         <div class="form-group mb-3">
             <label asp-for="id_inquilino" class="control-label">Inquilino</label>
-            <select asp-for="id_inquilino" asp-items="@ViewBag.Inquilinos" class="form-control">
-                <option value="">Seleccione un inquilino</option>
-            </select>
-            <span asp-validation-for="id_inquilino" class="text-danger"></span>
+                <table class="table table-bordered mt-2">
+            <thead>
+                <tr>
+                    <th>Nombre completo</th>
+                    <th>DNI</th>
+                </tr>
+            </thead>
+            <div>  <tr>
+                <td>@Model.Inquilino?.NombreCompleto</td>
+                <td>@Model.Inquilino?.dni</td>
+            </tr>
+            </div>
+                </table>
         </div>
         <div class="form-group mb-3">
            @Html.LabelFor(m => m.fecha_inicio,"Fecha de Inicio")
-           @Html.TextBoxFor(m => m.fecha_inicio, new {@class = "form-control", type = "date"})
-           @Html.ValidationMessageFor(m => m.fecha_inicio, "", new { @class = "text-danger" })
+           <br>
+        <tr>@Html.TextBoxFor(m => m.fecha_inicio, format: "{0:dd-MM-yyyy}", new { @class = "form-control", @readonly = "readonly" })</tr>
         </div>
         <div class="form-group mb-3">
             @Html.LabelFor(m => m.fecha_fin,"Fecha de Finalización")
@@ -30,27 +39,32 @@
             @Html.ValidationMessageFor(m => m.fecha_fin, "", new { @class = "text-danger" })
         </div>
 
-        @if (ViewBag.InmuebleActual != null)
-        {
-            <h4>Inmueble Actual</h4>
-            <div class="form-group mb-3">
-                <input type="hidden" asp-for="id_inmueble" />
-                <input type="hidden" asp-for="monto_mensual" />
-                <p class="form-control-static">
-                    @ViewBag.InmuebleActual.direccion - @ViewBag.InmuebleActual.ambientes amb.
-                </p>
-                <p class="form-control-static">
-                    Monto: $@Model.monto_mensual
-                </p>
+        <div class="form-group mb-3">
+        <input type="hidden" asp-for="id_inmueble" />
+                @Html.LabelFor(m => m.Inmueble,"Inmueble")
+                <table class="table table-bordered mt-2">
+                    <thead>
+                        <tr>
+                            <th>Direccion</th>
+                            <th>Cantidad de ambientes</th>
+                            <th>Precio</th>
+                        </tr>
+                    </thead>
+                    <div>  
+                    <tr>
+                        <td>@Model.Inmueble?.direccion.ToString()</td>
+                        <td>@Model.Inmueble?.ambientes.ToString()</td>
+                        <td>@Model.Inmueble?.precio.ToString("C", new System.Globalization.CultureInfo("es-AR"))</td>
+                    </tr>
+                    </div>
+                </table>
+              
             </div>
-        }
-        
         <div class="form-group mt-2">
             <label for="monto_mensual">Monto Mensual</label>
             <input asp-for="monto_mensual" class="form-control" type="number" step="0.01"/>
             <span asp-validation-for="monto_mensual" class="text-danger"></span>
         </div>
-
         <button type="submit" class="btn btn-primary mt-3">Guardar Cambios</button>
     </form>
 </div>

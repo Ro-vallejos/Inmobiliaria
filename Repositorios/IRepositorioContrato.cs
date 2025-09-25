@@ -9,5 +9,6 @@ namespace _net_integrador.Repositorios
         Contrato? ObtenerContratoId(int id);
         void AgregarContrato(Contrato contrato);
         void ActualizarContrato(Contrato contrato);
+        List<Contrato> ObtenerContratoPorInmueble(int idInmueble, int idContrato);
     }
 }

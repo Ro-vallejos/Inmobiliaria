@@ -15,6 +15,7 @@ public class RepositorioContrato : RepositorioBase, IRepositorioContrato
 
         using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
+            
             var query = @"
             SELECT 
                 c.id, c.id_inquilino, c.id_inmueble, c.fecha_inicio, c.fecha_fin, c.monto_mensual, c.estado AS estadoContrato, c.multa, c.fecha_terminacion_anticipada,
@@ -230,6 +231,44 @@ public class RepositorioContrato : RepositorioBase, IRepositorioContrato
     //     return ids;
     // }
 
-    
+    public List<Contrato> ObtenerContratoPorInmueble(int idInmueble, int idContrato)
+    {
+         List<Contrato> contratos = new List<Contrato>();
+
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
+        {
+            var query = @"SELECT *FROM contrato WHERE id_inmueble = @idInmueble AND id != @idContrato;";
+
+            using (MySqlCommand command = new MySqlCommand(query, connection))
+            {
+                connection.Open();
+                command.Parameters.AddWithValue("@idInmueble", idInmueble);
+                command.Parameters.AddWithValue("@idContrato", idContrato);
+
+
+                var reader = command.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    contratos.Add(new Contrato
+                    {
+                        id = reader.GetInt32("id"),
+                        id_inquilino = reader.GetInt32("id_inquilino"),
+                        id_inmueble = reader.GetInt32("id_inmueble"),
+                        fecha_inicio = reader.GetDateTime("fecha_inicio"),
+                        fecha_fin = reader.GetDateTime("fecha_fin"),
+                        monto_mensual = reader.GetDecimal("monto_mensual"),
+                        estado = reader.GetInt32("estado"),
+                        multa = reader.IsDBNull(reader.GetOrdinal("multa")) ? (decimal?)null : reader.GetDecimal("multa"),
+                        fecha_terminacion_anticipada = reader.IsDBNull(reader.GetOrdinal("fecha_terminacion_anticipada")) ? (DateTime?)null : reader.GetDateTime("fecha_terminacion_anticipada"),
+                    });
+                }
+
+                connection.Close();
+            }
+        }
+
+        return contratos;
+    }
     
 }

@@ -63,12 +63,14 @@ public class ContratoController : Controller
             return NotFound();
         }
 
-        var inquilinos = _inquilinoRepo.ObtenerInquilinos()
-            .Select(i => new SelectListItem { Value = i.id.ToString(), Text = i.NombreCompleto }).ToList();
-        ViewBag.Inquilinos = inquilinos;
-
-        var inmueble = _inmuebleRepo.ObtenerInmuebleId(contrato.id_inmueble);
-        ViewBag.InmuebleActual = inmueble;
+        if (contrato.id_inquilino.HasValue)
+        {
+            contrato.Inquilino = _inquilinoRepo.ObtenerInquilinoId(contrato.id_inquilino.Value);
+        }
+        if (contrato.id_inmueble.HasValue)
+        {
+            contrato.Inmueble = _inmuebleRepo.ObtenerInmuebleId(contrato.id_inmueble.Value);
+        }
 
         return View(contrato);
     }
@@ -107,31 +109,62 @@ public class ContratoController : Controller
         }
 
         contrato.estado = 1;
-        _contratoRepo.AgregarContrato(contrato);
-        _inmuebleRepo.MarcarComoAlquilado(contrato.id_inmueble);
+        if (contrato.id_inmueble.HasValue)
+        {
+            _contratoRepo.AgregarContrato(contrato);
+            _inmuebleRepo.MarcarComoAlquilado(contrato.id_inmueble.Value);
+        }
+
 
         return RedirectToAction("Index");
     }
-
     [HttpPost]
     public IActionResult Editar(Contrato contratoEditado)
     {
         if (ModelState.IsValid)
         {
+            if (contratoEditado.id_inmueble.HasValue)
+            {
+                var contratosExistentes = _contratoRepo.ObtenerContratoPorInmueble(contratoEditado.id_inmueble.Value, contratoEditado.id);
+                bool haySolapamiento = contratosExistentes.Any(c =>contratoEditado.fecha_inicio <= c.fecha_fin && contratoEditado.fecha_fin >= c.fecha_inicio );
+
+                if (haySolapamiento)
+                {
+                    ModelState.AddModelError("fecha_fin", "La fecha de finalización se solapa con otro contrato del mismo inmueble.");
+                    if (contratoEditado.id_inquilino.HasValue)
+                    {
+                        contratoEditado.Inquilino = _inquilinoRepo.ObtenerInquilinoId(contratoEditado.id_inquilino.Value);
+                    }
+
+                    if (contratoEditado.id_inmueble.HasValue)
+                    {
+                        contratoEditado.Inmueble = _inmuebleRepo.ObtenerInmuebleId(contratoEditado.id_inmueble.Value);
+                    }
+
+                    return View(contratoEditado);
+                }
+            }
             _contratoRepo.ActualizarContrato(contratoEditado);
             TempData["Exito"] = "Contrato actualizado con éxito.";
             return RedirectToAction("Index");
         }
 
-        var inquilinos = _inquilinoRepo.ObtenerInquilinos()
-            .Select(i => new SelectListItem { Value = i.id.ToString(), Text = i.NombreCompleto }).ToList();
-        ViewBag.Inquilinos = inquilinos;
+        if (contratoEditado.id_inquilino.HasValue)
+        {
+            contratoEditado.Inquilino = _inquilinoRepo.ObtenerInquilinoId(contratoEditado.id_inquilino.Value);
+        }
 
-        var inmueble = _inmuebleRepo.ObtenerInmuebleId(contratoEditado.id_inmueble);
-        ViewBag.InmuebleActual = inmueble;
+        if (contratoEditado.id_inmueble.HasValue)
+        {
+            contratoEditado.Inmueble = _inmuebleRepo.ObtenerInmuebleId(contratoEditado.id_inmueble.Value);
+        }
 
         return View(contratoEditado);
     }
+
+
+
+
     // [HttpPost]
     // public IActionResult TerminarAnticipado(int id)
     // {
