@@ -14,7 +14,7 @@ public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
         List<Usuario> usuarios = new List<Usuario>();
         using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
-            var query = "SELECT id, nombre, apellido, dni, email, password, rol, estado FROM usuario";
+            var query = "SELECT id, nombre, apellido, dni, email, password, rol, estado, avatar FROM usuario";
             using (MySqlCommand command = new MySqlCommand(query, connection))
             {
                 connection.Open();
@@ -30,7 +30,8 @@ public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
                         email = reader.GetString("email"),
                         password = reader.GetString("password"),
                         rol = reader.GetString("rol"),
-                        estado = reader.GetInt32("estado")
+                        estado = reader.GetInt32("estado"),
+                        avatar = reader.IsDBNull(reader.GetOrdinal("avatar")) ? null : reader.GetString("avatar")
                     });
                 }
                 connection.Close();
@@ -44,7 +45,7 @@ public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
         Usuario? usuario = null;
         using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
-            var sql = "SELECT id, nombre, apellido, dni, email, password, rol, estado FROM usuario WHERE id = @id";
+            var sql = "SELECT id, nombre, apellido, dni, email, password, rol, estado, avatar FROM usuario WHERE id = @id";
             using (MySqlCommand command = new MySqlCommand(sql, connection))
             {
                 connection.Open();
@@ -61,7 +62,8 @@ public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
                         email = reader.GetString("email"),
                         password = reader.GetString("password"),
                         rol = reader.GetString("rol"),
-                        estado = reader.GetInt32("estado")
+                        estado = reader.GetInt32("estado"),
+                        avatar = reader.IsDBNull(reader.GetOrdinal("avatar")) ? null : reader.GetString("avatar")
                     };
                 }
                 connection.Close();
@@ -74,7 +76,7 @@ public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
     {
         using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
-            var sql = "INSERT INTO usuario (nombre, apellido, dni, email, password, rol, estado) VALUES (@nombre, @apellido, @dni, @email, @password, @rol, @estado)";
+            var sql = "INSERT INTO usuario (nombre, apellido, dni, email, password, rol, estado, avatar) VALUES (@nombre, @apellido, @dni, @email, @password, @rol, @estado, @avatar)";
             using (MySqlCommand command = new MySqlCommand(sql, connection))
             {
                 connection.Open();
@@ -85,6 +87,7 @@ public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
                 command.Parameters.AddWithValue("@password", usuario.password);
                 command.Parameters.AddWithValue("@rol", usuario.rol);
                 command.Parameters.AddWithValue("@estado", 1);
+                command.Parameters.AddWithValue("@avatar", usuario.avatar);
                 command.ExecuteNonQuery();
                 connection.Close();
             }
@@ -95,7 +98,7 @@ public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
     {
         using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
-            var sql = "UPDATE usuario SET nombre = @nombre, apellido = @apellido, dni = @dni, email = @email, password = @password, rol = @rol, estado = @estado WHERE id = @id";
+            var sql = "UPDATE usuario SET nombre = @nombre, apellido = @apellido, dni = @dni, email = @email, password = @password, rol = @rol, estado = @estado, avatar = @avatar WHERE id = @id";
             using (MySqlCommand command = new MySqlCommand(sql, connection))
             {
                 connection.Open();
@@ -107,6 +110,7 @@ public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
                 command.Parameters.AddWithValue("@password", usuario.password);
                 command.Parameters.AddWithValue("@rol", usuario.rol);
                 command.Parameters.AddWithValue("@estado", usuario.estado);
+                command.Parameters.AddWithValue("@avatar", usuario.avatar);
                 command.ExecuteNonQuery();
                 connection.Close();
             }
@@ -118,8 +122,6 @@ public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
         using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
             var query = "UPDATE usuario SET estado = 0 WHERE id = @id";
-            // var query = "DELETE FROM usuario WHERE id = @id";
-
             using (var command = new MySqlCommand(query, connection))
             {
                 command.Parameters.AddWithValue("@id", id);
@@ -129,19 +131,19 @@ public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
             }
         }
     }
+
     public void ActivarUsuario(int id)
-{
-    using (MySqlConnection connection = new MySqlConnection(connectionString))
     {
-        var query = "UPDATE usuario SET estado = 1 WHERE id = @id";
-        
-        using (var command = new MySqlCommand(query, connection))
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
-            command.Parameters.AddWithValue("@id", id);
-            connection.Open();
-            command.ExecuteNonQuery();
-            connection.Close();
+            var query = "UPDATE usuario SET estado = 1 WHERE id = @id";
+            using (var command = new MySqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@id", id);
+                connection.Open();
+                command.ExecuteNonQuery();
+                connection.Close();
+            }
         }
     }
-}
 }

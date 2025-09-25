@@ -17,6 +17,7 @@
                 <th>@Html.DisplayNameFor(model => model[0].dni)</th>
                 <th>@Html.DisplayNameFor(model => model[0].email)</th>
                 <th>@Html.DisplayNameFor(model => model[0].rol)</th>
+                <th>@Html.DisplayNameFor(model => model[0].avatar)</th>
                 <th>Estado</th>
                 <th>Acciones</th>
             </tr>
@@ -31,6 +32,12 @@
                     <td>@Html.DisplayFor(modelItem => usuario.dni)</td>
                     <td>@Html.DisplayFor(modelItem => usuario.email)</td>
                     <td>@Html.DisplayFor(modelItem => usuario.rol)</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(usuario.avatar))
+                        {
+                            <img src="@usuario.avatar" alt="Avatar de usuario" style="max-width: 50px; max-height: 50px;" class="img-thumbnail" />
+                        }
+                    </td>
                     <td>
                         @if (usuario.estado == 1)
                         {

@@ -54,6 +54,11 @@ public class UsuarioController : Controller
     {
         if (ModelState.IsValid)
         {
+            if (string.IsNullOrEmpty(usuarioEditado.avatar))
+            {
+                string nombreCompleto = $"{usuarioEditado.nombre} {usuarioEditado.apellido}";
+                usuarioEditado.avatar = $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(nombreCompleto)}&background=343a40&color=fff&rounded=true&size=128";
+            }
             _usuarioRepo.ActualizarUsuario(usuarioEditado);
             TempData["Exito"] = "Datos guardados con éxito";
             return RedirectToAction("Index");
@@ -66,6 +71,8 @@ public class UsuarioController : Controller
     {
         if (ModelState.IsValid)
         {
+            string nombreCompleto = $"{usuarioNuevo.nombre} {usuarioNuevo.apellido}";
+            usuarioNuevo.avatar = $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(nombreCompleto)}&background=343a40&color=fff&rounded=true&size=128";
             _usuarioRepo.AgregarUsuario(usuarioNuevo);
             TempData["Exito"] = "Usuario agregado con éxito";
             return RedirectToAction("Index");
