@@ -5,8 +5,14 @@
 }
 
 <div class="container mt-4">
-    <h2>Lista de Usuarios</h2>
-    <a asp-action="Agregar" class="btn btn-primary my-3">Agregar Nuevo Usuario</a>
+    <div class="d-flex justify-content-between align-items-center">
+        <h2>Listado de Usuarios</h2>
+        @* Ahora usamos el método IsInRole() para una comprobación más robusta *@
+        @if (User.IsInRole("Admin"))
+        {
+            <a asp-action="Agregar" class="btn btn-primary my-3">Agregar Nuevo Usuario</a>
+        }
+    </div>
 
     <table class="table table-striped table-bordered">
         <thead class="thead-dark">
@@ -49,14 +55,18 @@
                         }
                     </td>
                     <td>
-                        @if (usuario.estado == 1)
+                        @* Ahora usamos el método IsInRole() en lugar de ViewBag *@
+                        @if (User.IsInRole("Admin"))
                         {
-                            <a asp-action="Editar" asp-route-id="@usuario.id" class="btn btn-warning btn-sm">Editar</a>
-                            <a asp-action="Eliminar" asp-route-id="@usuario.id" class="btn btn-danger btn-sm">Desactivar</a>
-                        }
-                        else
-                        {
-                            <a asp-action="Activar" asp-route-id="@usuario.id" class="btn btn-success btn-sm">Activar</a>
+                            @if (usuario.estado == 1)
+                            {
+                                <a asp-action="Editar" asp-route-id="@usuario.id" class="btn btn-warning btn-sm">Editar</a>
+                                <a asp-action="Eliminar" asp-route-id="@usuario.id" class="btn btn-danger btn-sm">Desactivar</a>
+                            }
+                            else
+                            {
+                                <a asp-action="Activar" asp-route-id="@usuario.id" class="btn btn-success btn-sm">Activar</a>
+                            }
                         }
                     </td>
                 </tr>

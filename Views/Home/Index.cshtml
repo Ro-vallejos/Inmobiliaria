@@ -65,16 +65,19 @@
             </div>
         </div>
 
-        <div class="col">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body text-center">
-                    <i class="bi bi-people-fill" style="font-size: 3rem; color: #dc3545;"></i>
-                    <h5 class="card-title mt-3">Usuarios</h5>
-                    <p class="card-text">Administra las cuentas de empleados y administradores.</p>
-                    <a href="/Usuario" class="btn btn-danger mt-2">Ver Usuarios</a>
+        @if (User.IsInRole("Admin"))
+        {
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="bi bi-people-fill" style="font-size: 3rem; color: #dc3545;"></i>
+                        <h5 class="card-title mt-3">Usuarios</h5>
+                        <p class="card-text">Administra las cuentas de empleados y administradores.</p>
+                        <a href="/Usuario" class="btn btn-danger mt-2">Ver Usuarios</a>
+                    </div>
                 </div>
             </div>
-        </div>
+        }
 
     </div>
 </div>

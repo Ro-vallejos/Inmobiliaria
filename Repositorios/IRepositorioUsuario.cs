@@ -11,5 +11,7 @@ namespace _net_integrador.Repositorios
         void ActualizarUsuario(Usuario usuario);
         void EliminarUsuario(int id);
         void ActivarUsuario(int id);
+        
+        Usuario? ObtenerUsuarioEmail(string email);
     }
 }

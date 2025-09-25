@@ -71,6 +71,38 @@ public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
         }
         return usuario;
     }
+    
+    public Usuario? ObtenerUsuarioEmail(string email)
+    {
+        Usuario? usuario = null;
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
+        {
+            var sql = "SELECT id, nombre, apellido, dni, email, password, rol, estado, avatar FROM usuario WHERE email = @email";
+            using (MySqlCommand command = new MySqlCommand(sql, connection))
+            {
+                connection.Open();
+                command.Parameters.AddWithValue("@email", email);
+                var reader = command.ExecuteReader();
+                if (reader.Read())
+                {
+                    usuario = new Usuario
+                    {
+                        id = reader.GetInt32("id"),
+                        nombre = reader.GetString("nombre"),
+                        apellido = reader.GetString("apellido"),
+                        dni = reader.GetString("dni"),
+                        email = reader.GetString("email"),
+                        password = reader.GetString("password"),
+                        rol = reader.GetString("rol"),
+                        estado = reader.GetInt32("estado"),
+                        avatar = reader.IsDBNull(reader.GetOrdinal("avatar")) ? null : reader.GetString("avatar")
+                    };
+                }
+                connection.Close();
+            }
+        }
+        return usuario;
+    }
 
     public void AgregarUsuario(Usuario usuario)
     {

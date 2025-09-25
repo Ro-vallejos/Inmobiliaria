@@ -1,21 +1,33 @@
 using _net_integrador.Repositorios;
+using Microsoft.AspNetCore.Authentication.Cookies; 
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 
+builder.Services.AddSession(options => {
+    options.IdleTimeout = TimeSpan.FromMinutes(20);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Usuario/Login"; 
+    });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin")); 
+});
+
 builder.Services.AddTransient<IRepositorioInmueble, RepositorioInmueble>();
-
 builder.Services.AddTransient<IRepositorioPropietario, RepositorioPropietario>();
-
 builder.Services.AddTransient<IRepositorioInquilino, RepositorioInquilino>();
-
 builder.Services.AddTransient<IRepositorioContrato, RepositorioContrato>();
-
 builder.Services.AddTransient<IRepositorioPago, RepositorioPago>();
-
 builder.Services.AddTransient<IRepositorioTipoInmueble, RepositorioTipoInmueble>();
-
 builder.Services.AddTransient<IRepositorioUsuario, RepositorioUsuario>();
 
 var app = builder.Build();
@@ -24,7 +36,6 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -33,10 +44,12 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
+app.UseSession();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Usuario}/{action=Login}/{id?}");
 
 app.Run();

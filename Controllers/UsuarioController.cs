@@ -2,6 +2,11 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using _net_integrador.Models;
 using _net_integrador.Repositorios;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace _net_integrador.Controllers;
 
@@ -16,18 +21,21 @@ public class UsuarioController : Controller
         _usuarioRepo = usuarioRepo;
     }
 
+    [Authorize] 
     public IActionResult Index()
     {
         var listaUsuarios = _usuarioRepo.ObtenerUsuarios();
         return View(listaUsuarios);
     }
     
+    [Authorize(Policy = "AdminOnly")] 
     [HttpGet]
     public IActionResult Agregar()
     {
         return View();
     }
 
+    [Authorize(Policy = "AdminOnly")]
     [HttpGet]
     public IActionResult Editar(int id)
     {
@@ -35,6 +43,7 @@ public class UsuarioController : Controller
         return View(usuarioSeleccionado);
     }
     
+    [Authorize(Policy = "AdminOnly")]
     public IActionResult Eliminar(int id)
     {
         _usuarioRepo.EliminarUsuario(id);
@@ -42,6 +51,7 @@ public class UsuarioController : Controller
         return RedirectToAction("Index");
     }
     
+    [Authorize(Policy = "AdminOnly")]
     public IActionResult Activar(int id)
     {
         _usuarioRepo.ActivarUsuario(id);
@@ -50,6 +60,7 @@ public class UsuarioController : Controller
     }
 
     [HttpPost]
+    [Authorize(Policy = "AdminOnly")]
     public IActionResult Editar(Usuario usuarioEditado)
     {
         if (ModelState.IsValid)
@@ -67,6 +78,7 @@ public class UsuarioController : Controller
     }
 
     [HttpPost]
+    [Authorize(Policy = "AdminOnly")]
     public IActionResult Agregar(Usuario usuarioNuevo)
     {
         if (ModelState.IsValid)
@@ -78,5 +90,57 @@ public class UsuarioController : Controller
             return RedirectToAction("Index");
         }
         return View("Agregar", usuarioNuevo);
+    }
+
+    [HttpGet]
+    public IActionResult Login()
+    {
+        if (User.Identity.IsAuthenticated)
+        {
+            return RedirectToAction("Index");
+        }
+        return View();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Login(string email, string password)
+    {
+        if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+        {
+            ViewBag.Error = "Debe ingresar el email y la contraseña.";
+            return View();
+        }
+
+        var usuario = _usuarioRepo.ObtenerUsuarioEmail(email);
+
+        if (usuario == null || usuario.password != password)
+        {
+            ViewBag.Error = "El email o la contraseña son incorrectos.";
+            return View();
+        }
+        
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, usuario.email),
+            new Claim(ClaimTypes.Role, usuario.rol)
+        };
+
+        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+        var authProperties = new AuthenticationProperties
+        {
+            IsPersistent = false
+        };
+
+        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
+
+        TempData["Exito"] = "Inicio de sesión exitoso.";
+        return RedirectToAction("Index", "Home");
+    }
+    
+    public async Task<IActionResult> Logout()
+    {
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        return RedirectToAction("Login");
     }
 }
