@@ -7,25 +7,29 @@ namespace _net_integrador.Models
     public class Contrato
     {
         public int id { get; set; }
-        public int id_inquilino { get; set; }
+        [Required(ErrorMessage = "Este campo es obligatorio ")]
+
+        public int? id_inquilino { get; set; }
         public Inquilino? Inquilino { get; set; } 
         [Required(ErrorMessage = "Este campo es obligatorio ")]
         public int id_inmueble { get; set; }
         public Inmueble? Inmueble { get; set; }
         [Required(ErrorMessage = "Este campo es obligatorio ")]
-        [Range(0, double.MaxValue, ErrorMessage = "Ingrese solo números positivos")]
-        public decimal monto_mensual { get; set; }
-        [Range(0, double.MaxValue, ErrorMessage = "Ingrese solo números positivos")]
+        [Range(1.01, double.MaxValue, ErrorMessage = "Ingrese solo números positivos")]
+        public decimal? monto_mensual { get; set; }
+        [Range(1.01, double.MaxValue, ErrorMessage = "Ingrese solo números positivos")]
 
         public decimal? multa { get; set; }
+  [DataType(DataType.Date, ErrorMessage = "Ingrese una fecha valida")]
 
         public DateTime? fecha_terminacion_anticipada { get; set; }
         [Required(ErrorMessage = "Este campo es obligatorio ")]
-
-        public DateTime fecha_inicio { get; set; }
+ [DataType(DataType.Date, ErrorMessage = "Ingrese una fecha valida")]
+        public DateTime? fecha_inicio { get; set; }
         [Required(ErrorMessage = "Este campo es obligatorio ")]
+  [DataType(DataType.Date, ErrorMessage = "Ingrese una fecha valida")]
 
-        public DateTime fecha_fin { get; set; }
+        public DateTime? fecha_fin { get; set; }
         public int estado { get; set; }
     }
 }

@@ -14,15 +14,16 @@
         <dt class="col-sm-2">Código:</dt>
         <dd class="col-sm-10">@Model.id</dd>
         <dt class="col-sm-2">Inquilino:</dt>
-        <dd class="col-sm-10">@Model.Inquilino.nombre @Model.Inquilino.apellido</dd>
+        <dd class="col-sm-10">@Model.Inquilino?.nombre @Model.Inquilino?.apellido</dd>
         <dt class="col-sm-2">Inmueble:</dt>
-        <dd class="col-sm-10">@Model.Inmueble.direccion</dd>
+        <dd class="col-sm-10">@Model.Inmueble?.direccion</dd>
         <dt class="col-sm-2">Monto:</dt>
-        <dd class="col-sm-10">@Model.monto_mensual.ToString("C")</dd>
+        <dd class="col-sm-10">@Model.monto_mensual?.ToString("C")</dd>
         <dt class="col-sm-2">Fecha Inicio:</dt>
-        <dd class="col-sm-10">@Model.fecha_inicio.ToShortDateString()</dd>
+        <dd class="col-sm-10">@Model.fecha_inicio?.ToString("dd/MM/yyyy")</dd>
+        
         <dt class="col-sm-2">Fecha Fin:</dt>
-        <dd class="col-sm-10">@Model.fecha_fin.ToShortDateString()</dd>
+        <dd class="col-sm-10">@Model..fecha_fin?.ToString("dd/MM/yyyy")</dd>
         <dt class="col-sm-2">Estado:</dt>
         <dd class="col-sm-10">@(Model.estado == 1 ? "Vigente" : "Terminado")</dd>
     </dl>

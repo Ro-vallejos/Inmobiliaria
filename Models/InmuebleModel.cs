@@ -41,9 +41,7 @@ namespace _net_integrador.Models
 
         public string eje_y { get; set; } = string.Empty;
         [Required(ErrorMessage = "Este campo es obligatorio")]
-
-
-        public decimal? precio { get; set; }
+        public decimal precio { get; set; }
         public Estado estado { get; set; }
 
 

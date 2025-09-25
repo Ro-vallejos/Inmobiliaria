@@ -202,34 +202,33 @@ public class RepositorioContrato : RepositorioBase, IRepositorioContrato
             }
         }
     }
-    public List<int> ObtenerInmueblesOcupados(DateTime inicio, DateTime fin)
-    {
-        var ids = new List<int>();
-        using (MySqlConnection connection = new MySqlConnection(connectionString))
-        {
-            string sql = @"SELECT id_inmueble FROM contrato
-                               WHERE NOT (@fin <= fecha_inicio OR @inicio >= fecha_fin)";
+    // public List<int> ObtenerInmueblesOcupados(DateTime inicio, DateTime fin)
+    // {
+    //     var ids = new List<int>();
+    //     using (MySqlConnection connection = new MySqlConnection(connectionString))
+    //     {
+    //         string sql = @"SELECT id_inmueble FROM contrato WHERE NOT (@fin <= fecha_inicio OR @inicio >= fecha_fin) AND (fecha_terminacion_anticipada IS NULL OR fecha_terminacion_anticipada > @inicio) AND estado = 1;";
 
-            using (MySqlCommand command = new MySqlCommand(sql, connection))
-            {
-                connection.Open();
+    //         using (MySqlCommand command = new MySqlCommand(sql, connection))
+    //         {
+    //             connection.Open();
 
-                command.Parameters.AddWithValue("@inicio", inicio);
-                command.Parameters.AddWithValue("@fin", fin);
-                var reader = command.ExecuteReader();
+    //             command.Parameters.AddWithValue("@inicio", inicio);
+    //             command.Parameters.AddWithValue("@fin", fin);
+    //             var reader = command.ExecuteReader();
 
-                while (reader.Read())
-                {
-                    ids.Add(reader.GetInt32(0));
-                }
-                connection.Close();
+    //             while (reader.Read())
+    //             {
+    //                 ids.Add(reader.GetInt32(0));
+    //             }
+    //             connection.Close();
 
-            }
+    //         }
 
 
-        }
-        return ids;
-    }
+    //     }
+    //     return ids;
+    // }
 
     
     
