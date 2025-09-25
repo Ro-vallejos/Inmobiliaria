@@ -118,6 +118,20 @@ public class ContratoController : Controller
 
         return RedirectToAction("Index");
     }
+[HttpGet]
+    public IActionResult Cancelar(int id)
+    {
+        var contrato = _contratoRepo.ObtenerContratoId(id);
+
+        if (contrato == null)
+        {
+            TempData["Error"] = "El contrato no fue encontrado.";
+            return RedirectToAction("Index");
+        }
+
+        return View(contrato);
+    }
+
     [HttpPost]
     public IActionResult Editar(Contrato contratoEditado)
     {
@@ -126,7 +140,7 @@ public class ContratoController : Controller
             if (contratoEditado.id_inmueble.HasValue)
             {
                 var contratosExistentes = _contratoRepo.ObtenerContratoPorInmueble(contratoEditado.id_inmueble.Value, contratoEditado.id);
-                bool haySolapamiento = contratosExistentes.Any(c =>contratoEditado.fecha_inicio <= c.fecha_fin && contratoEditado.fecha_fin >= c.fecha_inicio );
+                bool haySolapamiento = contratosExistentes.Any(c => contratoEditado.fecha_inicio <= c.fecha_fin && contratoEditado.fecha_fin >= c.fecha_inicio);
 
                 if (haySolapamiento)
                 {
@@ -161,32 +175,82 @@ public class ContratoController : Controller
 
         return View(contratoEditado);
     }
+    
+    [HttpPost]
+[HttpPost]
+public IActionResult Cancelar(int idContrato, DateTime fechaTerminacion)
+{
+    var contrato = _contratoRepo.ObtenerContratoId(idContrato);
+
+    if (contrato == null)
+    {
+        return Json(new { success = false, error = "El contrato no fue encontrado." }); 
+    }
+
+    
+    try
+    {
+        decimal multaCalculada = CalcularMulta(contrato, fechaTerminacion); 
+
+        contrato.multa = multaCalculada;
+        contrato.fecha_terminacion_anticipada = fechaTerminacion;
+        contrato.estado = 0; 
+
+        _contratoRepo.ActualizarContrato(contrato);
+
+        return Json(new { 
+            success = true, 
+            multa = contrato.multa.Value.ToString("C", new System.Globalization.CultureInfo("es-AR")), 
+            multaValor = contrato.multa.Value 
+        });
+    }
+    catch (Exception ex)
+    {
+        return Json(new { success = false, error = $"Error al guardar la cancelación: {ex.Message}" });
+    }
+}  
+     private decimal CalcularMulta(Contrato contrato, DateTime fechaTerminacion)
+    {
+        if (!contrato.fecha_fin.HasValue || !contrato.fecha_inicio.HasValue || !contrato.monto_mensual.HasValue)
+        {
+            return 0m;
+        }
+
+        var duracionTotalMeses = (contrato.fecha_fin.Value.Year - contrato.fecha_inicio.Value.Year) * 12 + (contrato.fecha_fin.Value.Month - contrato.fecha_inicio.Value.Month);
+        var tiempoTranscurridoMeses = (fechaTerminacion.Year - contrato.fecha_inicio.Value.Year) * 12 + (fechaTerminacion.Month - contrato.fecha_inicio.Value.Month);
+
+        decimal mesesMulta;
+        if (tiempoTranscurridoMeses < (duracionTotalMeses / 2))
+        {
+            mesesMulta = 2;
+        }
+        else
+        {
+            mesesMulta = 1; 
+        }
+
+        return contrato.monto_mensual.Value * mesesMulta;
+    }
+[HttpGet]
+public IActionResult CalcularMultaAjax(int idContrato, string fechaTerminacion)
+{
+    var contrato = _contratoRepo.ObtenerContratoId(idContrato);
+    
+    if (!DateTime.TryParse(fechaTerminacion, out DateTime fecha))
+    {
+        return Json(new { success = false, multa = "Fecha inválida" });
+    }
+
+    if (contrato == null)
+    {
+        return Json(new { success = false, multa = "Contrato no encontrado" });
+    }
+
+    decimal multaCalculada = CalcularMulta(contrato, fecha);
+    return Json(new { success = true, multaTexto = multaCalculada.ToString("C", new System.Globalization.CultureInfo("es-AR")), multaValor = multaCalculada });
+}
 
 
-
-
-    // [HttpPost]
-    // public IActionResult TerminarAnticipado(int id)
-    // {
-    //     var contrato = _contratoRepo.ObtenerContratoId(id);
-    //     if (contrato == null)
-    //     {
-    //         return NotFound();
-    //     }
-
-    //     contrato.estado = 0;
-    //     _contratoRepo.ActualizarContrato(contrato);
-    //     TempData["Exito"] = "Contrato terminado con éxito";
-
-    //     var inmueble = _inmuebleRepo.ObtenerInmuebleId(contrato.id_inmueble);
-    //     if (inmueble != null)
-    //     {
-    //         inmueble.estado = 1;
-    //         _inmuebleRepo.ActualizarInmueble(inmueble);
-    //     }
-
-    //     return RedirectToAction("Index");
-    // }
 
 
 }
