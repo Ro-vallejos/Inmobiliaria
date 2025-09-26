@@ -5,6 +5,8 @@
 }
 
 <div class="container mt-4">
+    <a asp-action="Index" asp-controller="Usuario" class="btn btn-secondary">Volver</a>
+
     <h2>Editar Usuario</h2>
 
     <form asp-action="@ViewBag.Accion" asp-controller="Usuario" method="post">
@@ -40,16 +42,27 @@
 
         @if (User.IsInRole("Admin"))
         {
-            <div class="form-group">
-                @Html.LabelFor(m => m.rol)
-                @Html.DropDownListFor(m => m.rol,
-                    new SelectList(new[] {
-                        new { Value = "Empleado", Text = "Empleado" },
-                        new { Value = "Admin", Text = "Admin" }
-                    }, "Value", "Text", Model.rol),
-                    new { @class = "form-control" })
-                @Html.ValidationMessageFor(m => m.rol, "", new { @class = "text-danger" })
-            </div>
+            if (Model.rol == "Admin")
+            {
+                <div class="form-group">
+                    @Html.LabelFor(m => m.rol)
+                    <input type="text" value="Admin" class="form-control" readonly />
+                    @Html.HiddenFor(m => m.rol)
+                </div>
+            }
+            else
+            {
+                <div class="form-group">
+                    @Html.LabelFor(m => m.rol)
+                    @Html.DropDownListFor(m => m.rol,
+                        new SelectList(new[] {
+                            new { Value = "Empleado", Text = "Empleado" },
+                            new { Value = "Admin", Text = "Admin" }
+                        }, "Value", "Text", Model.rol),
+                        new { @class = "form-control" })
+                    @Html.ValidationMessageFor(m => m.rol, "", new { @class = "text-danger" })
+                </div>
+            }
         }
 
         <h4>Personalizar Avatar</h4>

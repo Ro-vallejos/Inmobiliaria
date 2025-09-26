@@ -5,6 +5,8 @@
 }
 
 <div class="container mt-4">
+    <a asp-action="Index" asp-controller="Usuario" class="btn btn-secondary">Volver</a>
+
     <h2>Agregar Nuevo Usuario</h2>
 
     @using (Html.BeginForm("Agregar", "Usuario", FormMethod.Post))

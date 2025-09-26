@@ -6,10 +6,13 @@
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center">
+    <a asp-action="Index" asp-controller="Home" class="btn btn-secondary">Volver</a>
+
         <h2>Listado de Usuarios</h2>
         @if (User.IsInRole("Admin"))
         {
             <a asp-action="Agregar" class="btn btn-primary my-3">Agregar Nuevo Usuario</a>
+            
         }
     </div>
 
@@ -59,7 +62,11 @@
                             @if (usuario.estado == 1)
                             {
                                 <a asp-action="Editar" asp-route-id="@usuario.id" class="btn btn-warning btn-sm">Editar</a>
-                                <a asp-action="Eliminar" asp-route-id="@usuario.id" class="btn btn-danger btn-sm">Desactivar</a>
+
+                                @if (!(usuario.rol == "Admin" || usuario.email == User.Identity.Name))
+                                {
+                                    <a asp-action="Eliminar" asp-route-id="@usuario.id" class="btn btn-danger btn-sm">Desactivar</a>
+                                }
                             }
                             else
                             {
@@ -67,6 +74,7 @@
                             }
                         }
                     </td>
+
                 </tr>
             }
         </tbody>

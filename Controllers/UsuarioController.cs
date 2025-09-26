@@ -47,10 +47,28 @@ public class UsuarioController : Controller
     [Authorize(Policy = "Administrador")]
     public IActionResult Eliminar(int id)
     {
+        var usuario = _usuarioRepo.ObtenerUsuarioId(id);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+        if (usuario == null) return NotFound();
+
+        if (userIdClaim != null && usuario.id == int.Parse(userIdClaim.Value))
+        {
+            TempData["Error"] = "No puedes desactivarte a ti mismo.";
+            return RedirectToAction("Index");
+        }
+
+        if (usuario.rol == "Admin")
+        {
+            TempData["Error"] = "No puedes desactivar a otro administrador.";
+            return RedirectToAction("Index");
+        }
+
         _usuarioRepo.EliminarUsuario(id);
         TempData["Exito"] = "Usuario desactivado con éxito";
         return RedirectToAction("Index");
-    }
+}
+
 
     [Authorize(Policy = "Administrador")]
     public IActionResult Activar(int id)
@@ -66,15 +84,25 @@ public class UsuarioController : Controller
     {
         if (ModelState.IsValid)
         {
+            var usuarioOriginal = _usuarioRepo.ObtenerUsuarioId(usuarioEditado.id);
+            if (usuarioOriginal == null) return NotFound();
+
+            if (usuarioOriginal.rol == "Admin")
+            {
+                usuarioEditado.rol = "Admin";
+            }
+
             if (string.IsNullOrEmpty(usuarioEditado.avatar))
             {
                 string nombreCompleto = $"{usuarioEditado.nombre} {usuarioEditado.apellido}";
                 usuarioEditado.avatar = $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(nombreCompleto)}&background=343a40&color=fff&rounded=true&size=128";
             }
+
             _usuarioRepo.ActualizarUsuario(usuarioEditado);
             TempData["Exito"] = "Datos guardados con éxito";
             return RedirectToAction("Index");
         }
+
         return View("Editar", usuarioEditado);
     }
 
@@ -206,4 +234,5 @@ public class UsuarioController : Controller
 
         return View("Editar", usuarioEditado);
     }
+
 }
