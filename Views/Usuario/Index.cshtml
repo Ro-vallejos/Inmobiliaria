@@ -60,10 +60,13 @@
                         @if (User.IsInRole("Admin"))
                         {
                             @if (usuario.estado == 1)
-                            {
-                                <a asp-action="Editar" asp-route-id="@usuario.id" class="btn btn-warning btn-sm">Editar</a>
+{
+                                @if (usuario.rol != "Admin" || usuario.email == User.Identity.Name)
+                                {
+                                    <a asp-action="Editar" asp-route-id="@usuario.id" class="btn btn-warning btn-sm">Editar</a>
+                                }
 
-                                @if (!(usuario.rol == "Admin" || usuario.email == User.Identity.Name))
+                                @if (usuario.rol != "Admin" && usuario.email != User.Identity.Name)
                                 {
                                     <a asp-action="Eliminar" asp-route-id="@usuario.id" class="btn btn-danger btn-sm">Desactivar</a>
                                 }

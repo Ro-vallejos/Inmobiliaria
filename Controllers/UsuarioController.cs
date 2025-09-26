@@ -40,6 +40,16 @@ public class UsuarioController : Controller
     public IActionResult Editar(int id)
     {
         var usuarioSeleccionado = _usuarioRepo.ObtenerUsuarioId(id);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+        if (usuarioSeleccionado == null) return NotFound();
+        if (usuarioSeleccionado.rol == "Admin" && 
+            (userIdClaim == null || usuarioSeleccionado.id != int.Parse(userIdClaim.Value)))
+        {
+            TempData["Error"] = "No puedes editar a otro administrador.";
+            return RedirectToAction("Index");
+        }
+
         ViewBag.Accion = "Editar";
         return View(usuarioSeleccionado);
     }
