@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace _net_integrador.Controllers;
 
-[Authorize]
 public class UsuarioController : Controller
 {
     private readonly ILogger<UsuarioController> _logger;
@@ -132,42 +131,53 @@ public class UsuarioController : Controller
         return View();
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Login(string email, string password)
+[HttpPost]
+public async Task<IActionResult> Login(string email, string password)
+{
+    if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
     {
-        if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
-        {
-            ViewBag.Error = "Debe ingresar el email y la contraseña.";
-            return View();
-        }
-
-        var usuario = _usuarioRepo.ObtenerUsuarioEmail(email);
-
-        if (usuario == null || usuario.password != password)
-        {
-            ViewBag.Error = "El email o la contraseña son incorrectos.";
-            return View();
-        }
-
-        var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.Name, usuario.email),
-            new Claim(ClaimTypes.Role, usuario.rol),
-            new Claim(ClaimTypes.NameIdentifier, usuario.id.ToString())
-        };
-
-        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-
-        var authProperties = new AuthenticationProperties
-        {
-            IsPersistent = false
-        };
-
-        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
-
-        TempData["Exito"] = "Inicio de sesión exitoso.";
-        return RedirectToAction("Index", "Home");
+        ViewBag.Error = "Debe ingresar el email y la contraseña.";
+        return View();
     }
+
+    var usuario = _usuarioRepo.ObtenerUsuarioEmail(email);
+
+    if (usuario == null || usuario.password != password)
+    {
+        ViewBag.Error = "El email o la contraseña son incorrectos.";
+        return View();
+    }
+
+    if (usuario.estado == 0)
+    {
+        ViewBag.Error = "El usuario se encuentra desactivado. Contacte al administrador.";
+        return View();
+    }
+
+    var claims = new List<Claim>
+    {
+        new Claim(ClaimTypes.Name, usuario.email),
+        new Claim(ClaimTypes.Role, usuario.rol),
+        new Claim(ClaimTypes.NameIdentifier, usuario.id.ToString())
+    };
+
+    var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+    var authProperties = new AuthenticationProperties
+    {
+        IsPersistent = false
+    };
+
+    await HttpContext.SignInAsync(
+        CookieAuthenticationDefaults.AuthenticationScheme,
+        new ClaimsPrincipal(claimsIdentity),
+        authProperties
+    );
+
+    TempData["Exito"] = "Inicio de sesión exitoso.";
+    return RedirectToAction("Index", "Home");
+}
+
 
     public async Task<IActionResult> Logout()
     {
