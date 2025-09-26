@@ -103,6 +103,7 @@ public class ContratoController : Controller
     }
 
     [HttpGet]
+    [Authorize(Policy = "Administrador")]
     public IActionResult Detalles(int id)
     {
         var contratoSeleccionado = _contratoRepo.ObtenerContratoId(id);
@@ -111,12 +112,21 @@ public class ContratoController : Controller
             return NotFound();
         }
 
-        var auditorias = _auditoriaRepo.ObtenerAuditoriasPorTipo(TipoAuditoria.Contrato)
+        // Auditoría de contrato
+        var auditoriasContrato = _auditoriaRepo.ObtenerAuditoriasPorTipo(TipoAuditoria.Contrato)
             .Where(a => a.id_registro_afectado == id)
             .OrderByDescending(a => a.fecha_hora)
             .ToList();
 
-        ViewBag.Auditorias = auditorias;
+        // Auditoría de pagos
+        var pagosDelContrato = _pagoRepo.ObtenerPagosPorContrato(id).Select(p => p.id).ToList();
+        var auditoriasPagos = _auditoriaRepo.ObtenerAuditoriasPorTipo(TipoAuditoria.Pago)
+            .Where(a => pagosDelContrato.Contains(a.id_registro_afectado))
+            .OrderByDescending(a => a.fecha_hora)
+            .ToList();
+
+        ViewBag.AuditoriasContrato = auditoriasContrato;
+        ViewBag.AuditoriasPagos = auditoriasPagos;
 
         return View(contratoSeleccionado);
     }
