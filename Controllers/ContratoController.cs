@@ -284,10 +284,12 @@ public class ContratoController : Controller
         {
             return Json(new { success = false, fechaTerminacionError = "El contrato no fue encontrado." });
         }
+
         if (!contrato.fecha_inicio.HasValue || !contrato.fecha_fin.HasValue)
         {
             return Json(new { success = false, fechaTerminacionError = "El contrato no tiene fechas de inicio o fin válidas." });
         }
+
         if (fechaTerminacion.Date >= contrato.fecha_fin.Value.Date)
         {
             return Json(new { success = false, fechaTerminacionError = "La fecha de terminación debe ser estrictamente anterior a la fecha de finalización original." });
@@ -300,26 +302,32 @@ public class ContratoController : Controller
 
         try
         {
+            // ✅ Calcular multa
             decimal multaCalculada = CalcularMulta(contrato, fechaTerminacion);
 
             contrato.multa = multaCalculada;
             contrato.fecha_terminacion_anticipada = fechaTerminacion;
-            contrato.estado = 0;
+            contrato.estado = 0; // ❌ estado cambiado a cancelado
 
+            // ✅ Guardar en DB
             _contratoRepo.ActualizarContrato(contrato);
+
+            // ✅ Auditoría correcta
             _auditoriaRepo.InsertarRegistroAuditoria(
                 TipoAuditoria.Contrato,
-                  idContrato,
-                  AccionAuditoria.Crear,
-                  User.Identity?.Name ?? "Anónimo"
-              );
+                contrato.id,
+                AccionAuditoria.Anular, // ✅ Ahora marca como Anulado
+                User.Identity?.Name ?? "Anónimo"
+            );
+
+            // ✅ Registrar multa como pago pendiente
             var nuevoPago = new Pago
             {
-                id_contrato = idContrato,
-                nro_pago = 999,
+                id_contrato = contrato.id,
+                nro_pago = 999, // marcador especial para multa
                 fecha_pago = null,
                 estado = EstadoPago.pendiente,
-                concepto = $"Pago de Multa por Rescisión Anticipada",
+                concepto = "Multa por rescisión anticipada"
             };
 
             _pagoRepo.AgregarPago(nuevoPago);
@@ -336,6 +344,8 @@ public class ContratoController : Controller
             return Json(new { success = false, error = $"Error al guardar la cancelación: {ex.Message}" });
         }
     }
+
+
 
     private decimal CalcularMulta(Contrato contrato, DateTime fechaTerminacion)
     {
@@ -378,10 +388,12 @@ public class ContratoController : Controller
         {
             return Json(new { success = false, fechaTerminacionError = "Contrato no encontrado" });
         }
+
         if (!contrato.fecha_inicio.HasValue || !contrato.fecha_fin.HasValue)
         {
             return Json(new { success = false, fechaTerminacionError = "El contrato no tiene fechas de inicio o fin válidas." });
         }
+
         if (fecha.Date >= contrato.fecha_fin.Value.Date)
         {
             return Json(new { success = false, fechaTerminacionError = "La fecha debe ser ANTERIOR a la fecha de finalización original." });
@@ -405,31 +417,21 @@ public class ContratoController : Controller
 
         try
         {
+            // Calcular meses transcurridos desde inicio hasta fecha de terminación
             var mesesTranscurridos = ((fecha.Year - contrato.fecha_inicio.Value.Year) * 12) + fecha.Month - contrato.fecha_inicio.Value.Month;
             if (fecha.Day >= contrato.fecha_inicio.Value.Day)
             {
                 mesesTranscurridos += 1;
             }
+
             int pagosRealizados = _pagoRepo.ContarPagosRealizados(idContrato);
             int mesesAdeudados = mesesTranscurridos - pagosRealizados;
-
             if (mesesAdeudados < 0)
             {
                 mesesAdeudados = 0;
             }
-            if (contrato.monto_mensual.HasValue)
-            {
-                decimal montoMensual = contrato.monto_mensual.Value;
-                decimal multaCalculada = CalcularMulta(contrato, fecha);
 
-                return Json(new
-                {
-                    success = true,
-                    multaTexto = multaCalculada.ToString("C", new System.Globalization.CultureInfo("es-AR")),
-                    multaValor = multaCalculada,
-                });
-            }
-            else
+            if (!contrato.monto_mensual.HasValue)
             {
                 return Json(new
                 {
@@ -437,14 +439,28 @@ public class ContratoController : Controller
                     fechaTerminacionError = "El contrato no tiene un monto mensual definido para calcular la multa."
                 });
             }
+
+            decimal montoMensual = contrato.monto_mensual.Value;
+            decimal multaCalculada = CalcularMulta(contrato, fecha);
+            decimal totalAdeudado = mesesAdeudados * montoMensual;
+
+            return Json(new
+            {
+                success = true,
+                multaTexto = multaCalculada.ToString("C", new System.Globalization.CultureInfo("es-AR")),
+                multaValor = multaCalculada,
+                mesesAdeudados = mesesAdeudados,
+                totalAdeudadoTexto = totalAdeudado.ToString("C", new System.Globalization.CultureInfo("es-AR")),
+                totalAdeudadoValor = totalAdeudado
+            });
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"EXCEPCIÓN INTERNA: {ex.Message}");
             return Json(new { success = false, error = ex.Message, stack = ex.StackTrace });
         }
-
     }
+
     [HttpPost]
     public IActionResult Renovar(Contrato contrato)
     {
