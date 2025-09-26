@@ -17,6 +17,7 @@ public class ContratoController : Controller
     private readonly IRepositorioInquilino _inquilinoRepo;
     private readonly IRepositorioInmueble _inmuebleRepo;
     private readonly IRepositorioAuditoria _auditoriaRepo;
+    
 
     public ContratoController(
         ILogger<ContratoController> logger,
@@ -96,7 +97,7 @@ public class ContratoController : Controller
         }
 
         var inquilinos = _inquilinoRepo.ObtenerInquilinos()
-            .Where(i => i.dni.Contains(dni))
+            .Where(i => i.dni.Contains(dni) && i.estado == 1)
             .Select(i => new { i.id, nombreCompleto = i.NombreCompleto, dni = i.dni })
             .ToList();
 
@@ -113,13 +114,11 @@ public class ContratoController : Controller
             return NotFound();
         }
 
-        // Auditoría de contrato
         var auditoriasContrato = _auditoriaRepo.ObtenerAuditoriasPorTipo(TipoAuditoria.Contrato)
             .Where(a => a.id_registro_afectado == id)
             .OrderByDescending(a => a.fecha_hora)
             .ToList();
 
-        // Auditoría de pagos
         var pagosDelContrato = _pagoRepo.ObtenerPagosPorContrato(id).Select(p => p.id).ToList();
         var auditoriasPagos = _auditoriaRepo.ObtenerAuditoriasPorTipo(TipoAuditoria.Pago)
             .Where(a => pagosDelContrato.Contains(a.id_registro_afectado))
@@ -149,21 +148,16 @@ public IActionResult Editar(int id)
         contrato.Inmueble = _inmuebleRepo.ObtenerInmuebleId(contrato.id_inmueble.Value);
     }
 
-    // 💡 Lógica Clave: Calcular DuracionEnMeses para precargar en el formulario
     if (contrato.fecha_inicio.HasValue && contrato.fecha_fin.HasValue)
     {
         int meses = ((contrato.fecha_fin.Value.Year - contrato.fecha_inicio.Value.Year) * 12) +
                     contrato.fecha_fin.Value.Month - contrato.fecha_inicio.Value.Month;
         
-        // Ajuste simple: si termina el mismo día del mes, es la duración exacta.
-        // Si no, podemos redondear o usar la duración original que se guardó.
-        // Asumiendo que la duración guardada es la que importa:
+      
         contrato.DuracionEnMeses = meses;
         
-        // Si no tienes el campo en la DB y solo existe para el formulario, este es el cálculo.
-        // Podrías necesitar un método para obtener la duración original si se guardó en meses.
     } else {
-         contrato.DuracionEnMeses = 1; // Default
+         contrato.DuracionEnMeses = 1; 
     }
 
     return View(contrato);
@@ -263,19 +257,15 @@ public IActionResult Editar(int id)
    [HttpPost]
 public IActionResult Editar(Contrato contratoEditado)
 {
-    // 💡 Lógica Clave: Recalcular fecha_fin en base a DuracionEnMeses
     if (contratoEditado.DuracionEnMeses <= 0)
     {
         ModelState.AddModelError("DuracionEnMeses", "La duración en meses debe ser mayor a cero.");
     }
     else if (contratoEditado.fecha_inicio.HasValue)
     {
-        // 1. Recalcular la fecha de fin
         contratoEditado.fecha_fin = contratoEditado.fecha_inicio.Value.AddMonths(contratoEditado.DuracionEnMeses);
     }
-    // Fin de la Lógica Clave de cálculo
     
-    // Si la fecha de inicio no tiene valor, también es un error de modelo.
     if (!contratoEditado.fecha_inicio.HasValue)
     {
          ModelState.AddModelError("fecha_inicio", "La fecha de inicio es requerida.");
@@ -286,17 +276,14 @@ public IActionResult Editar(Contrato contratoEditado)
     {
         if (contratoEditado.id_inmueble.HasValue)
         {
-            // La validación de solapamiento ahora usa la nueva fecha_fin calculada
             var contratosExistentes = _contratoRepo.ObtenerContratoPorInmueble(contratoEditado.id_inmueble.Value, contratoEditado.id);
-            // ... (el resto de tu lógica de solapamiento sigue igual, usando contratoEditado.fecha_fin) ...
             
             bool haySolapamiento = contratosExistentes.Any(c => contratoEditado.fecha_inicio <= c.fecha_fin && contratoEditado.fecha_fin >= c.fecha_inicio);
 
             if (haySolapamiento)
             {
                 ModelState.AddModelError("fecha_fin", "La nueva fecha de finalización se solapa con otro contrato del mismo inmueble.");
-                // ... (Recargar Inquilino e Inmueble para el retorno de la vista) ...
-                // ... (Es importante recargar el modelo si falla) ...
+              
                 return RecargarVistaEditar(contratoEditado);
             }
         }
@@ -306,11 +293,9 @@ public IActionResult Editar(Contrato contratoEditado)
         return RedirectToAction("Index");
     }
 
-    // Recargar Inquilino e Inmueble para el retorno de la vista si ModelState es inválido
     return RecargarVistaEditar(contratoEditado);
 }
 
-// 💡 Función auxiliar para evitar código repetitivo al retornar la vista con errores
 private IActionResult RecargarVistaEditar(Contrato contrato)
 {
     if (contrato.id_inquilino.HasValue)
@@ -350,29 +335,25 @@ private IActionResult RecargarVistaEditar(Contrato contrato)
 
         try
         {
-            // ✅ Calcular multa
             decimal multaCalculada = CalcularMulta(contrato, fechaTerminacion);
 
             contrato.multa = multaCalculada;
             contrato.fecha_terminacion_anticipada = fechaTerminacion;
-            contrato.estado = 0; // ❌ estado cambiado a cancelado
+            contrato.estado = 0; 
 
-            // ✅ Guardar en DB
             _contratoRepo.ActualizarContrato(contrato);
 
-            // ✅ Auditoría correcta
             _auditoriaRepo.InsertarRegistroAuditoria(
                 TipoAuditoria.Contrato,
                 contrato.id,
-                AccionAuditoria.Anular, // ✅ Ahora marca como Anulado
+                AccionAuditoria.Anular, 
                 User.Identity?.Name ?? "Anónimo"
             );
 
-            // ✅ Registrar multa como pago pendiente
             var nuevoPago = new Pago
             {
                 id_contrato = contrato.id,
-                nro_pago = 999, // marcador especial para multa
+                nro_pago = 999, 
                 fecha_pago = null,
                 estado = EstadoPago.pendiente,
                 concepto = "Multa por rescisión anticipada"
@@ -465,7 +446,6 @@ private IActionResult RecargarVistaEditar(Contrato contrato)
 
         try
         {
-            // Calcular meses transcurridos desde inicio hasta fecha de terminación
             var mesesTranscurridos = ((fecha.Year - contrato.fecha_inicio.Value.Year) * 12) + fecha.Month - contrato.fecha_inicio.Value.Month;
             if (fecha.Day >= contrato.fecha_inicio.Value.Day)
             {

@@ -158,11 +158,9 @@
                 $resultados.empty();
 
                 if (term.length < 3) {
-                    // limpiar selección si se borra mucho
-                    // $selectInquilino.val(''); // opcional
+                    
                     return;
                 }
-
                 $.get('/Contrato/BuscarInquilinoPorDni', { dni: term })
                     .done(function (data) {
                         renderResultados(data);
