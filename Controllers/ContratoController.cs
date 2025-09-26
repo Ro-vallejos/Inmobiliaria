@@ -41,8 +41,13 @@ public class ContratoController : Controller
 
         ViewBag.Inquilinos = inquilinos;
         ViewBag.InmueblesDisponibles = null;
+        var nuevoContrato = new Contrato
+        {
+            DuracionEnMeses = 1,
+            fecha_inicio = DateTime.Today
+        };
 
-        return View(new Contrato());
+        return View(nuevoContrato);
     }
 
     [HttpGet]
@@ -74,25 +79,27 @@ public class ContratoController : Controller
 
         return View(contrato);
     }
-
     [HttpPost]
     public IActionResult Agregar(Contrato contrato, string actionType)
     {
-
-        ViewBag.Inquilinos = _inquilinoRepo.ObtenerInquilinos()
-            .Select(i => new SelectListItem { Value = i.id.ToString(), Text = i.NombreCompleto }).ToList();
-
+        ViewBag.Inquilinos = _inquilinoRepo.ObtenerInquilinos().Select(i => new SelectListItem { Value = i.id.ToString(), Text = i.NombreCompleto }).ToList();
+        if (contrato.DuracionEnMeses <= 0)
+        {
+            ModelState.AddModelError("DuracionEnMeses", "La duración en meses debe ser mayor a cero.");
+        }
+        else if (contrato.fecha_inicio.HasValue)
+        {
+            contrato.fecha_fin = contrato.fecha_inicio.Value.AddMonths(contrato.DuracionEnMeses);
+        }
         if (actionType == "BuscarInmuebles")
         {
-            if (!contrato.fecha_inicio.HasValue || !contrato.fecha_fin.HasValue)
-
+            if (!contrato.fecha_inicio.HasValue || !contrato.fecha_fin.HasValue || contrato.fecha_inicio >= contrato.fecha_fin)
             {
-                ModelState.AddModelError("", "Debe ingresar ambas fechas para buscar inmuebles.");
-                ViewBag.InmueblesDisponibles = null;
-            }
-            else if (contrato.fecha_inicio >= contrato.fecha_fin)
-            {
-                ModelState.AddModelError("", "La fecha de inicio debe ser anterior a la fecha de fin.");
+                if (!ModelState.IsValid) { }
+                else
+                {
+                    ModelState.AddModelError("", "Verifique la fecha de inicio y la duración del contrato.");
+                }
                 ViewBag.InmueblesDisponibles = null;
             }
             else
@@ -101,24 +108,42 @@ public class ContratoController : Controller
             }
             return View(contrato);
         }
+        if (contrato.id_inmueble == 0)
+            ModelState.AddModelError("id_inmueble", "Debe seleccionar un inmueble.");
 
-        if (contrato.id_inmueble == 0 || !ModelState.IsValid)
+        if (!contrato.monto_mensual.HasValue)
+            ModelState.AddModelError("monto_mensual", "Debe ingresar un monto mensual.");
+
+        if (ModelState.IsValid)
+        {
+            contrato.estado = 1;
+            try
+            {
+                _contratoRepo.AgregarContrato(contrato);
+                if (contrato.id_inmueble.HasValue && contrato.id_inmueble.Value > 0)
+                {
+                    _inmuebleRepo.MarcarComoAlquilado(contrato.id_inmueble.Value);
+                }
+                TempData["Exito"] = "Contrato creado exitosamente.";
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"Error al guardar en la base de datos: {ex.Message}");
+            }
+        }
+        if (contrato.fecha_inicio.HasValue && contrato.fecha_fin.HasValue && contrato.fecha_inicio < contrato.fecha_fin)
+        {
+            ViewBag.InmueblesDisponibles = _inmuebleRepo.BuscarDisponiblePorFecha(contrato.fecha_inicio.Value, contrato.fecha_fin.Value);
+        }
+        else
         {
             ViewBag.InmueblesDisponibles = null;
-            return View(contrato);
         }
 
-        contrato.estado = 1;
-        if (contrato.id_inmueble.HasValue)
-        {
-            _contratoRepo.AgregarContrato(contrato);
-            _inmuebleRepo.MarcarComoAlquilado(contrato.id_inmueble.Value);
-        }
-
-
-        return RedirectToAction("Index");
+        return View(contrato);
     }
-[HttpGet]
+    [HttpGet]
     public IActionResult Cancelar(int id)
     {
         var contrato = _contratoRepo.ObtenerContratoId(id);
@@ -175,41 +200,42 @@ public class ContratoController : Controller
 
         return View(contratoEditado);
     }
-    
+
     [HttpPost]
-[HttpPost]
-public IActionResult Cancelar(int idContrato, DateTime fechaTerminacion)
-{
-    var contrato = _contratoRepo.ObtenerContratoId(idContrato);
-
-    if (contrato == null)
+    [HttpPost]
+    public IActionResult Cancelar(int idContrato, DateTime fechaTerminacion)
     {
-        return Json(new { success = false, error = "El contrato no fue encontrado." }); 
+        var contrato = _contratoRepo.ObtenerContratoId(idContrato);
+
+        if (contrato == null)
+        {
+            return Json(new { success = false, error = "El contrato no fue encontrado." });
+        }
+
+
+        try
+        {
+            decimal multaCalculada = CalcularMulta(contrato, fechaTerminacion);
+
+            contrato.multa = multaCalculada;
+            contrato.fecha_terminacion_anticipada = fechaTerminacion;
+            contrato.estado = 0;
+
+            _contratoRepo.ActualizarContrato(contrato);
+
+            return Json(new
+            {
+                success = true,
+                multa = contrato.multa.Value.ToString("C", new System.Globalization.CultureInfo("es-AR")),
+                multaValor = contrato.multa.Value
+            });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, error = $"Error al guardar la cancelación: {ex.Message}" });
+        }
     }
-
-    
-    try
-    {
-        decimal multaCalculada = CalcularMulta(contrato, fechaTerminacion); 
-
-        contrato.multa = multaCalculada;
-        contrato.fecha_terminacion_anticipada = fechaTerminacion;
-        contrato.estado = 0; 
-
-        _contratoRepo.ActualizarContrato(contrato);
-
-        return Json(new { 
-            success = true, 
-            multa = contrato.multa.Value.ToString("C", new System.Globalization.CultureInfo("es-AR")), 
-            multaValor = contrato.multa.Value 
-        });
-    }
-    catch (Exception ex)
-    {
-        return Json(new { success = false, error = $"Error al guardar la cancelación: {ex.Message}" });
-    }
-}  
-     private decimal CalcularMulta(Contrato contrato, DateTime fechaTerminacion)
+    private decimal CalcularMulta(Contrato contrato, DateTime fechaTerminacion)
     {
         if (!contrato.fecha_fin.HasValue || !contrato.fecha_inicio.HasValue || !contrato.monto_mensual.HasValue)
         {
@@ -226,29 +252,29 @@ public IActionResult Cancelar(int idContrato, DateTime fechaTerminacion)
         }
         else
         {
-            mesesMulta = 1; 
+            mesesMulta = 1;
         }
 
         return contrato.monto_mensual.Value * mesesMulta;
     }
-[HttpGet]
-public IActionResult CalcularMultaAjax(int idContrato, string fechaTerminacion)
-{
-    var contrato = _contratoRepo.ObtenerContratoId(idContrato);
-    
-    if (!DateTime.TryParse(fechaTerminacion, out DateTime fecha))
+    [HttpGet]
+    public IActionResult CalcularMultaAjax(int idContrato, string fechaTerminacion)
     {
-        return Json(new { success = false, multa = "Fecha inválida" });
-    }
+        var contrato = _contratoRepo.ObtenerContratoId(idContrato);
 
-    if (contrato == null)
-    {
-        return Json(new { success = false, multa = "Contrato no encontrado" });
-    }
+        if (!DateTime.TryParse(fechaTerminacion, out DateTime fecha))
+        {
+            return Json(new { success = false, multa = "Fecha inválida" });
+        }
 
-    decimal multaCalculada = CalcularMulta(contrato, fecha);
-    return Json(new { success = true, multaTexto = multaCalculada.ToString("C", new System.Globalization.CultureInfo("es-AR")), multaValor = multaCalculada });
-}
+        if (contrato == null)
+        {
+            return Json(new { success = false, multa = "Contrato no encontrado" });
+        }
+
+        decimal multaCalculada = CalcularMulta(contrato, fecha);
+        return Json(new { success = true, multaTexto = multaCalculada.ToString("C", new System.Globalization.CultureInfo("es-AR")), multaValor = multaCalculada });
+    }
 
 
 
