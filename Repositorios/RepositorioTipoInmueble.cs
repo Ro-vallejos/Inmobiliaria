@@ -14,7 +14,7 @@ public class RepositorioTipoInmueble : RepositorioBase, IRepositorioTipoInmueble
         List<TipoInmueble> tipos = new List<TipoInmueble>();
         using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
-            var query = "SELECT id, tipo FROM tipo_inmueble";
+            var query = "SELECT id, tipo, estado FROM tipo_inmueble";
             using (MySqlCommand command = new MySqlCommand(query, connection))
             {
                 connection.Open();
@@ -24,7 +24,8 @@ public class RepositorioTipoInmueble : RepositorioBase, IRepositorioTipoInmueble
                     tipos.Add(new TipoInmueble
                     {
                         id = reader.GetInt32("id"),
-                        tipo = reader.GetString("tipo")
+                        tipo = reader.GetString("tipo"),
+                        estado = reader.GetInt32("estado")
                     });
                 }
                 connection.Close();
@@ -38,7 +39,7 @@ public class RepositorioTipoInmueble : RepositorioBase, IRepositorioTipoInmueble
         TipoInmueble? tipoInmueble = null;
         using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
-            var sql = "SELECT id, tipo FROM tipo_inmueble WHERE id = @id";
+            var sql = "SELECT id, tipo, estado FROM tipo_inmueble WHERE id = @id";
             using (MySqlCommand command = new MySqlCommand(sql, connection))
             {
                 connection.Open();
@@ -49,7 +50,8 @@ public class RepositorioTipoInmueble : RepositorioBase, IRepositorioTipoInmueble
                     tipoInmueble = new TipoInmueble
                     {
                         id = reader.GetInt32("id"),
-                        tipo = reader.GetString("tipo")
+                        tipo = reader.GetString("tipo"),
+                        estado = reader.GetInt32("estado")
                     };
                 }
                 connection.Close();
@@ -62,7 +64,7 @@ public class RepositorioTipoInmueble : RepositorioBase, IRepositorioTipoInmueble
     {
         using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
-            var sql = "INSERT INTO tipo_inmueble (tipo) VALUES (@tipo)";
+            var sql = "INSERT INTO tipo_inmueble (tipo, estado) VALUES (@tipo, 1)";
             using (MySqlCommand command = new MySqlCommand(sql, connection))
             {
                 connection.Open();
@@ -89,17 +91,47 @@ public class RepositorioTipoInmueble : RepositorioBase, IRepositorioTipoInmueble
         }
     }
 
-    public void EliminarTipoInmueble(int id)
+    public void DesactivarTipoInmueble(int id)
     {
         using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
-            var query = "DELETE FROM tipo_inmueble WHERE id = @id";
+            var query = "UPDATE tipo_inmueble SET estado = 0 WHERE id = @id";
             using (var command = new MySqlCommand(query, connection))
             {
                 command.Parameters.AddWithValue("@id", id);
                 connection.Open();
                 command.ExecuteNonQuery();
                 connection.Close();
+            }
+        }
+    }
+
+    public void ActivarTipoInmueble(int id)
+    {
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
+        {
+            var query = "UPDATE tipo_inmueble SET estado = 1 WHERE id = @id";
+            using (var command = new MySqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@id", id);
+                connection.Open();
+                command.ExecuteNonQuery();
+                connection.Close();
+            }
+        }
+    }
+
+    public bool EstaEnUso(int id)
+    {
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
+        {
+            var query = "SELECT COUNT(*) FROM inmueble WHERE id_tipo = @id";
+            using (var command = new MySqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@id", id);
+                connection.Open();
+                var count = Convert.ToInt32(command.ExecuteScalar());
+                return count > 0;
             }
         }
     }

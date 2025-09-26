@@ -37,9 +37,27 @@ public class TipoInmuebleController : Controller
         return View(tipoSeleccionado);
     }
 
-    public IActionResult Eliminar(int id)
+    [Authorize(Policy = "Administrador")]
+    public IActionResult Desactivar(int id)
     {
-        _tipoInmuebleRepo.EliminarTipoInmueble(id);
+        bool estaEnUso = _tipoInmuebleRepo.EstaEnUso(id);
+
+        if (estaEnUso)
+        {
+            TempData["Error"] = "No puedes desactivar este tipo de inmueble porque está en uso en un inmueble.";
+            return RedirectToAction("Index");
+        }
+
+        _tipoInmuebleRepo.DesactivarTipoInmueble(id);
+        TempData["Exito"] = "Tipo de inmueble desactivado con éxito.";
+        return RedirectToAction("Index");
+    }
+
+    [Authorize(Policy = "Administrador")]
+    public IActionResult Activar(int id)
+    {
+        _tipoInmuebleRepo.ActivarTipoInmueble(id);
+        TempData["Exito"] = "Tipo de inmueble activado con éxito.";
         return RedirectToAction("Index");
     }
 

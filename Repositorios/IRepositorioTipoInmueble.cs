@@ -9,6 +9,8 @@ namespace _net_integrador.Repositorios
         TipoInmueble? ObtenerTipoInmuebleId(int id);
         void AgregarTipoInmueble(TipoInmueble tipo);
         void ActualizarTipoInmueble(TipoInmueble tipo);
-        void EliminarTipoInmueble(int id);
+        void DesactivarTipoInmueble(int id);
+        public void ActivarTipoInmueble(int id);
+        public bool EstaEnUso(int id);
     }
 }

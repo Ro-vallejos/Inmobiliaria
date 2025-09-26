@@ -1,14 +1,11 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using _net_integrador.Models;
 using _net_integrador.Repositorios;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Linq.Expressions;
-using Org.BouncyCastle.Asn1.Iana;
 using Microsoft.AspNetCore.Authorization;
 
-
 namespace _net_integrador.Controllers;
+
 [Authorize]
 public class InmuebleController : Controller
 {
@@ -17,7 +14,12 @@ public class InmuebleController : Controller
     private readonly IRepositorioPropietario _repositorioPropietario;
     private readonly IRepositorioTipoInmueble _repositorioTipoInmueble;
 
-    public InmuebleController(ILogger<InmuebleController> logger, IRepositorioInmueble repositorioInmueble, IRepositorioPropietario repositorioPropietario, IRepositorioTipoInmueble repositorioTipoInmueble)
+    public InmuebleController(
+        ILogger<InmuebleController> logger,
+        IRepositorioInmueble repositorioInmueble,
+        IRepositorioPropietario repositorioPropietario,
+        IRepositorioTipoInmueble repositorioTipoInmueble
+    )
     {
         _logger = logger;
         _repositorioInmueble = repositorioInmueble;
@@ -29,11 +31,11 @@ public class InmuebleController : Controller
     {
         var listaInmuebles = _repositorioInmueble.ObtenerInmuebles();
         var propietarios = _repositorioPropietario.ObtenerPropietarios()
-        .Where(p => p.estado == 1)
-        .Select(p => new {
-            Id = p.id,
-            Nombre = $"{p.nombre} {p.apellido}"
-        }).ToList();
+            .Where(p => p.estado == 1)
+            .Select(p => new {
+                Id = p.id,
+                Nombre = $"{p.nombre} {p.apellido}"
+            }).ToList();
     
         ViewBag.Propietarios = new SelectList(propietarios, "Id", "Nombre");
         return View(listaInmuebles);
@@ -71,8 +73,12 @@ public class InmuebleController : Controller
     public IActionResult Agregar()
     {
         var propietarios = _repositorioPropietario.ObtenerPropietariosActivos();
+        var tipos = _repositorioTipoInmueble.ObtenerTiposInmueble()
+            .Where(t => t.estado == 1) // 🔥 solo tipos activos
+            .ToList();
+
         ViewBag.Propietarios = new SelectList(propietarios, "id", "NombreCompleto");
-        ViewBag.TiposInmueble = new SelectList(_repositorioTipoInmueble.ObtenerTiposInmueble(), "id", "tipo");
+        ViewBag.TiposInmueble = new SelectList(tipos, "id", "tipo");
         return View();
     }
 
@@ -115,13 +121,18 @@ public class InmuebleController : Controller
         {
             ModelState.AddModelError("id_tipo", "Debe seleccionar un tipo de inmueble");
         }
-        ViewBag.TiposInmueble = new SelectList(_repositorioTipoInmueble.ObtenerTiposInmueble(), "id", "tipo", inmuebleNuevo.id_tipo);
 
-        var propietarios = _repositorioPropietario.ObtenerPropietarios().Where(p => p.estado == 1).ToList();
+        var tipos = _repositorioTipoInmueble.ObtenerTiposInmueble()
+            .Where(t => t.estado == 1) // 🔥 solo tipos activos también acá
+            .ToList();
 
+        var propietarios = _repositorioPropietario.ObtenerPropietarios()
+            .Where(p => p.estado == 1)
+            .ToList();
+
+        ViewBag.TiposInmueble = new SelectList(tipos, "id", "tipo", inmuebleNuevo.id_tipo);
         ViewBag.Propietarios = new SelectList(propietarios, "id", "NombreCompleto");
 
         return View("Agregar", inmuebleNuevo);
     }
-
 }

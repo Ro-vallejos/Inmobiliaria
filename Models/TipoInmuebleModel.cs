@@ -6,6 +6,7 @@ namespace _net_integrador.Models
     public class TipoInmueble
     {
         public int id { get; set; }
-        public string tipo { get; set; }= string.Empty;
+        public string tipo { get; set; } = string.Empty;
+        public int estado { get; set; }
     }
 }
