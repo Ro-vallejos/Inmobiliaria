@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 26, 2025 at 10:32 PM
+-- Generation Time: Sep 26, 2025 at 10:52 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -39,6 +39,15 @@ CREATE TABLE `auditoria` (
   `fecha_hora` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `auditoria`
+--
+
+INSERT INTO `auditoria` (`id_auditoria`, `tipo`, `id_registro_afectado`, `accion`, `usuario`, `fecha_hora`) VALUES
+(1, 'Contrato', 1, 'Crear', 'admin@gmail.com', '2025-09-26 17:46:29'),
+(2, 'Contrato', 2, 'Crear', 'admin@gmail.com', '2025-09-26 17:47:05'),
+(3, 'Pago', 1, 'Recibir', 'admin@gmail.com', '2025-09-26 17:47:14');
+
 -- --------------------------------------------------------
 
 --
@@ -59,29 +68,49 @@ CREATE TABLE `contrato` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- Dumping data for table `contrato`
+--
+
+INSERT INTO `contrato` (`id`, `id_inquilino`, `id_inmueble`, `fecha_inicio`, `fecha_fin`, `estado`, `fecha_terminacion_anticipada`, `multa`, `monto_mensual`) VALUES
+(1, 1, 2, '2025-09-26', '2025-12-26', 1, NULL, NULL, 678123.00),
+(2, 1, 1, '2025-10-31', '2026-03-31', 1, NULL, NULL, 560000.00);
+
+--
 -- Triggers `contrato`
 --
 DROP TRIGGER IF EXISTS `generar_pagos_contrato`;
 DELIMITER $$
 CREATE TRIGGER `generar_pagos_contrato` AFTER INSERT ON `contrato` FOR EACH ROW BEGIN
-    DECLARE fecha_actual DATE;
+    DECLARE fecha_iteracion DATE;
     DECLARE contador INT DEFAULT 1;
+    DECLARE total_meses INT;
 
-    SET fecha_actual = NEW.fecha_inicio;
+    SET total_meses = PERIOD_DIFF(DATE_FORMAT(NEW.fecha_fin, '%Y%m'), DATE_FORMAT(NEW.fecha_inicio, '%Y%m'));
 
-    WHILE fecha_actual <= NEW.fecha_fin DO
+    IF DAY(NEW.fecha_fin) < DAY(NEW.fecha_inicio) THEN
+        SET total_meses = total_meses - 1;
+    END IF;
+
+    IF total_meses < 1 THEN
+         SET total_meses = 1; 
+    END IF;
+
+    SET fecha_iteracion = NEW.fecha_inicio;
+
+
+    WHILE contador <= total_meses DO
         INSERT INTO pago (id_contrato, nro_pago, estado, concepto)
         VALUES (
             NEW.id, 
             contador, 
             'pendiente',
-            CONCAT('Pago ', contador, ' correspondiente al mes de ', DATE_FORMAT(fecha_actual, '%M %Y'))
+
+            CONCAT('Pago ', contador, ' | Mes de ', DATE_FORMAT(fecha_iteracion, '%M %Y'))
         );
 
-        SET fecha_actual = DATE_ADD(fecha_actual, INTERVAL 1 MONTH); -- 30 DAY
+        SET fecha_iteracion = DATE_ADD(fecha_iteracion, INTERVAL 1 MONTH);
         SET contador = contador + 1;
     END WHILE;
-
 END
 $$
 DELIMITER ;
@@ -106,6 +135,14 @@ CREATE TABLE `inmueble` (
   `estado` enum('Disponible','Suspendido','Alquilado') NOT NULL DEFAULT 'Disponible'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `inmueble`
+--
+
+INSERT INTO `inmueble` (`id`, `id_propietario`, `id_tipo`, `direccion`, `uso`, `ambientes`, `eje_x`, `eje_y`, `precio`, `estado`) VALUES
+(1, 1, 1, 'Lavalle 1290', 'Residencial', 7, '2000', '3000', 560000.00, 'Alquilado'),
+(2, 2, 2, 'Mitre 983', 'Comercial', 2, '3000', '1000', 678123.00, 'Alquilado');
+
 -- --------------------------------------------------------
 
 --
@@ -123,6 +160,14 @@ CREATE TABLE `inquilino` (
   `estado` int(11) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `inquilino`
+--
+
+INSERT INTO `inquilino` (`id`, `nombre`, `apellido`, `dni`, `email`, `telefono`, `estado`) VALUES
+(1, 'FLAVIO', 'MENDOZA', '00000003', 'flavio@gmail.com', '266400003', 1),
+(2, 'CANDELA', 'ESCUDERO', '00000004', 'candela@gmail.com', '2664000005', 1);
+
 -- --------------------------------------------------------
 
 --
@@ -138,6 +183,20 @@ CREATE TABLE `pago` (
   `estado` enum('pendiente','recibido','anulado') NOT NULL DEFAULT 'pendiente',
   `concepto` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `pago`
+--
+
+INSERT INTO `pago` (`id`, `id_contrato`, `nro_pago`, `fecha_pago`, `estado`, `concepto`) VALUES
+(1, 1, 1, '2025-09-26', 'recibido', 'Pago 1 | Mes de September 2025'),
+(2, 1, 2, NULL, 'pendiente', 'Pago 2 | Mes de October 2025'),
+(3, 1, 3, NULL, 'pendiente', 'Pago 3 | Mes de November 2025'),
+(4, 2, 1, NULL, 'pendiente', 'Pago 1 | Mes de October 2025'),
+(5, 2, 2, NULL, 'pendiente', 'Pago 2 | Mes de November 2025'),
+(6, 2, 3, NULL, 'pendiente', 'Pago 3 | Mes de December 2025'),
+(7, 2, 4, NULL, 'pendiente', 'Pago 4 | Mes de January 2026'),
+(8, 2, 5, NULL, 'pendiente', 'Pago 5 | Mes de February 2026');
 
 -- --------------------------------------------------------
 
@@ -156,6 +215,14 @@ CREATE TABLE `propietario` (
   `estado` int(11) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `propietario`
+--
+
+INSERT INTO `propietario` (`id`, `nombre`, `apellido`, `dni`, `email`, `telefono`, `estado`) VALUES
+(1, 'VALENTIN', 'GIMENEZ', '43764888', 'valentingimenez1909@gmail.com', '2664326662', 1),
+(2, 'ROBERTA', 'VALLEJOS', '43690464', 'roberta.vallejos@gmail.com', '2664970148', 1);
+
 -- --------------------------------------------------------
 
 --
@@ -168,6 +235,15 @@ CREATE TABLE `tipo_inmueble` (
   `tipo` varchar(100) NOT NULL,
   `estado` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `tipo_inmueble`
+--
+
+INSERT INTO `tipo_inmueble` (`id`, `tipo`, `estado`) VALUES
+(1, 'Casa', 1),
+(2, 'Burger King', 1),
+(3, 'Departamento', 1);
 
 -- --------------------------------------------------------
 
@@ -187,6 +263,14 @@ CREATE TABLE `usuario` (
   `estado` int(11) NOT NULL DEFAULT 1,
   `avatar` varchar(2550) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `usuario`
+--
+
+INSERT INTO `usuario` (`id`, `nombre`, `apellido`, `dni`, `email`, `password`, `rol`, `estado`, `avatar`) VALUES
+(1, 'ADMIN', '1', '00000001', 'admin@gmail.com', '123', 'Admin', 1, 'https://ui-avatars.com/api/?name=ADMIN%201&background=343a40&color=fff&rounded=true&size=128'),
+(2, 'EMPLEADO', '1', '00000002', 'empleado@gmail.com', '123', 'Empleado', 1, 'https://ui-avatars.com/api/?name=EMPLEADO%201&background=343a40&color=fff&rounded=true&size=128');
 
 --
 -- Indexes for dumped tables
@@ -259,49 +343,49 @@ ALTER TABLE `usuario`
 -- AUTO_INCREMENT for table `auditoria`
 --
 ALTER TABLE `auditoria`
-  MODIFY `id_auditoria` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_auditoria` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `contrato`
 --
 ALTER TABLE `contrato`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `inmueble`
 --
 ALTER TABLE `inmueble`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `inquilino`
 --
 ALTER TABLE `inquilino`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `pago`
 --
 ALTER TABLE `pago`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `propietario`
 --
 ALTER TABLE `propietario`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `tipo_inmueble`
 --
 ALTER TABLE `tipo_inmueble`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `usuario`
 --
 ALTER TABLE `usuario`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Constraints for dumped tables
