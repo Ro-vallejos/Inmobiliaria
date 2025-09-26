@@ -15,13 +15,13 @@ public class ContratoController : Controller
     private readonly IRepositorioInmueble _inmuebleRepo;
     private readonly IRepositorioAuditoria _auditoriaRepo;
 
-
     public ContratoController(
         ILogger<ContratoController> logger,
         IRepositorioContrato contratoRepo,
         IRepositorioPago pagoRepo,
         IRepositorioInquilino inquilinoRepo,
-        IRepositorioInmueble inmuebleRepo, IRepositorioAuditoria auditoriaRepo)
+        IRepositorioInmueble inmuebleRepo, 
+        IRepositorioAuditoria auditoriaRepo)
     {
         _logger = logger;
         _contratoRepo = contratoRepo;
@@ -65,14 +65,16 @@ public class ContratoController : Controller
         return View(listaContratos);
     }
 
-
     [HttpGet]
     public IActionResult Agregar()
     {
-        var inquilinos = _inquilinoRepo.ObtenerInquilinos().Select(i => new SelectListItem { Value = i.id.ToString(), Text = i.NombreCompleto }).ToList();
+        var inquilinos = _inquilinoRepo.ObtenerInquilinos()
+            .Select(i => new SelectListItem { Value = i.id.ToString(), Text = i.NombreCompleto })
+            .ToList();
 
         ViewBag.Inquilinos = inquilinos;
         ViewBag.InmueblesDisponibles = null;
+
         var nuevoContrato = new Contrato
         {
             DuracionEnMeses = 1,
@@ -80,6 +82,22 @@ public class ContratoController : Controller
         };
 
         return View(nuevoContrato);
+    }
+
+    [HttpGet]
+    public IActionResult BuscarInquilinoPorDni(string dni)
+    {
+        if (string.IsNullOrWhiteSpace(dni))
+        {
+            return Json(new List<object>());
+        }
+
+        var inquilinos = _inquilinoRepo.ObtenerInquilinos()
+            .Where(i => i.dni.Contains(dni)) // búsqueda parcial
+            .Select(i => new { i.id, nombreCompleto = i.NombreCompleto, dni = i.dni })
+            .ToList();
+
+        return Json(inquilinos);
     }
 
     [HttpGet]
@@ -111,10 +129,14 @@ public class ContratoController : Controller
 
         return View(contrato);
     }
+
     [HttpPost]
     public IActionResult Agregar(Contrato contrato, string actionType)
     {
-        ViewBag.Inquilinos = _inquilinoRepo.ObtenerInquilinos().Select(i => new SelectListItem { Value = i.id.ToString(), Text = i.NombreCompleto }).ToList();
+        ViewBag.Inquilinos = _inquilinoRepo.ObtenerInquilinos()
+            .Select(i => new SelectListItem { Value = i.id.ToString(), Text = i.NombreCompleto })
+            .ToList();
+
         if (contrato.DuracionEnMeses <= 0)
         {
             ModelState.AddModelError("DuracionEnMeses", "La duración en meses debe ser mayor a cero.");
@@ -123,6 +145,7 @@ public class ContratoController : Controller
         {
             contrato.fecha_fin = contrato.fecha_inicio.Value.AddMonths(contrato.DuracionEnMeses);
         }
+
         if (actionType == "BuscarInmuebles")
         {
             if (!contrato.fecha_inicio.HasValue || !contrato.fecha_fin.HasValue || contrato.fecha_inicio >= contrato.fecha_fin)
@@ -140,6 +163,7 @@ public class ContratoController : Controller
             }
             return View(contrato);
         }
+
         if (contrato.id_inmueble == 0)
             ModelState.AddModelError("id_inmueble", "Debe seleccionar un inmueble.");
 
@@ -170,6 +194,7 @@ public class ContratoController : Controller
                 ModelState.AddModelError("", $"Error al guardar en la base de datos: {ex.Message}");
             }
         }
+
         if (contrato.fecha_inicio.HasValue && contrato.fecha_fin.HasValue && contrato.fecha_inicio < contrato.fecha_fin)
         {
             ViewBag.InmueblesDisponibles = _inmuebleRepo.BuscarDisponiblePorFecha(contrato.fecha_inicio.Value, contrato.fecha_fin.Value);
@@ -181,6 +206,7 @@ public class ContratoController : Controller
 
         return View(contrato);
     }
+
     [HttpGet]
     public IActionResult Cancelar(int id)
     {
@@ -240,7 +266,6 @@ public class ContratoController : Controller
     }
 
     [HttpPost]
-    [HttpPost]
     public IActionResult Cancelar(int idContrato, DateTime fechaTerminacion)
     {
         var contrato = _contratoRepo.ObtenerContratoId(idContrato);
@@ -262,7 +287,6 @@ public class ContratoController : Controller
         {
             return Json(new { success = false, fechaTerminacionError = "La fecha de terminación debe ser posterior a la fecha de inicio del contrato." });
         }
-
 
         try
         {
@@ -286,6 +310,7 @@ public class ContratoController : Controller
             return Json(new { success = false, error = $"Error al guardar la cancelación: {ex.Message}" });
         }
     }
+
     private decimal CalcularMulta(Contrato contrato, DateTime fechaTerminacion)
     {
         if (!contrato.fecha_fin.HasValue || !contrato.fecha_inicio.HasValue || !contrato.monto_mensual.HasValue)
@@ -293,8 +318,10 @@ public class ContratoController : Controller
             return 0m;
         }
 
-        var duracionTotalMeses = (contrato.fecha_fin.Value.Year - contrato.fecha_inicio.Value.Year) * 12 + (contrato.fecha_fin.Value.Month - contrato.fecha_inicio.Value.Month);
-        var tiempoTranscurridoMeses = (fechaTerminacion.Year - contrato.fecha_inicio.Value.Year) * 12 + (fechaTerminacion.Month - contrato.fecha_inicio.Value.Month);
+        var duracionTotalMeses = (contrato.fecha_fin.Value.Year - contrato.fecha_inicio.Value.Year) * 12 +
+                                 (contrato.fecha_fin.Value.Month - contrato.fecha_inicio.Value.Month);
+        var tiempoTranscurridoMeses = (fechaTerminacion.Year - contrato.fecha_inicio.Value.Year) * 12 +
+                                      (fechaTerminacion.Month - contrato.fecha_inicio.Value.Month);
 
         decimal mesesMulta;
         if (tiempoTranscurridoMeses < (duracionTotalMeses / 2))
@@ -308,6 +335,7 @@ public class ContratoController : Controller
 
         return contrato.monto_mensual.Value * mesesMulta;
     }
+
     [HttpGet]
     public IActionResult CalcularMultaAjax(int idContrato, string fechaTerminacion)
     {
@@ -335,17 +363,18 @@ public class ContratoController : Controller
         {
             return Json(new { success = false, fechaTerminacionError = "La fecha debe ser POSTERIOR a la fecha de inicio del contrato." });
         }
+
         DateTime? fechaUltimoPago = _pagoRepo.ObtenerFechaUltimoPagoRealizado(idContrato);
 
         if (fechaUltimoPago.HasValue && fecha.Date <= fechaUltimoPago.Value.Date)
         {
-
             return Json(new
             {
                 success = false,
                 fechaTerminacionError = $"La fecha de terminación debe ser POSTERIOR al último pago registrado ({fechaUltimoPago.Value.ToShortDateString()})."
             });
         }
+
         var pagosPendientes = _pagoRepo.ObtenerPagosPendientes(idContrato);
 
         int mesesAdeudados = pagosPendientes.Count;
@@ -367,16 +396,10 @@ public class ContratoController : Controller
         else
         {
             return Json(new
-        {
-            success = false,
-            fechaTerminacionError = "El contrato no tiene un monto mensual definido para calcular la multa."
-        });
+            {
+                success = false,
+                fechaTerminacionError = "El contrato no tiene un monto mensual definido para calcular la multa."
+            });
         }
-
-        
     }
-
-
-
-
 }
