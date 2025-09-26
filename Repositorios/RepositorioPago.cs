@@ -164,116 +164,61 @@ public class RepositorioPago : RepositorioBase, IRepositorioPago
             }
         }
     }
-    public List<Pago> ObtenerPagosPendientes(int contratoId)
+  public DateTime? ObtenerFechaUltimoPagoRealizado(int contratoId)
     {
-        List<Pago> pagos = new List<Pago>();
+        DateTime? fechaUltimoPago = null;
         using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
-            var sql = "SELECT *  FROM pago WHERE id_contrato = @idContrato AND estado_pago = 'pendiente';";
-            using (MySqlCommand command = new MySqlCommand(sql, connection))
-            {
-                connection.Open();
-                command.Parameters.AddWithValue("@id_contrato", contratoId);
-                var reader = command.ExecuteReader();
-
-                int idxId = reader.GetOrdinal("id");
-                int idxIdContrato = reader.GetOrdinal("id_contrato");
-                int idxNroPago = reader.GetOrdinal("nro_pago");
-                int idxFechaPago = reader.GetOrdinal("fecha_pago");
-                int idxEstado = reader.GetOrdinal("estado");
-                int idxConcepto = reader.GetOrdinal("concepto");
-
-                while (reader.Read())
-                {
-                    DateTime? fechaPago = null;
-                    var fechaString = reader.IsDBNull(idxFechaPago) ? null : reader.GetValue(idxFechaPago).ToString();
-                    if (!string.IsNullOrEmpty(fechaString) && fechaString != "0000-00-00")
-                    {
-                        fechaPago = DateTime.Parse(fechaString);
-                    }
-
-                    pagos.Add(new Pago
-                    {
-                        id = reader.GetInt32(idxId),
-                        id_contrato = reader.GetInt32(idxIdContrato),
-                        nro_pago = reader.GetInt32(idxNroPago),
-                        fecha_pago = fechaPago,
-                        estado = EstadoPago.pendiente,
-                        concepto = reader.GetString(idxConcepto)
-                    });
-                }
-                connection.Close();
-            }
-        }
-        return pagos;
-    }
-    public List<Pago> ObtenerPagosRecibidos(int contratoId)
-    {
-        List<Pago> pagos = new List<Pago>();
-        using (MySqlConnection connection = new MySqlConnection(connectionString))
-        {
-            var sql = "SELECT *  FROM pago WHERE id_contrato = @idContrato AND estado_pago = 'recibido';";
-            using (MySqlCommand command = new MySqlCommand(sql, connection))
-            {
-                connection.Open();
-                command.Parameters.AddWithValue("@id_contrato", contratoId);
-                var reader = command.ExecuteReader();
-
-                int idxId = reader.GetOrdinal("id");
-                int idxIdContrato = reader.GetOrdinal("id_contrato");
-                int idxNroPago = reader.GetOrdinal("nro_pago");
-                int idxFechaPago = reader.GetOrdinal("fecha_pago");
-                int idxEstado = reader.GetOrdinal("estado");
-                int idxConcepto = reader.GetOrdinal("concepto");
-
-                while (reader.Read())
-                {
-                    DateTime? fechaPago = null;
-                    var fechaString = reader.IsDBNull(idxFechaPago) ? null : reader.GetValue(idxFechaPago).ToString();
-                    if (!string.IsNullOrEmpty(fechaString) && fechaString != "0000-00-00")
-                    {
-                        fechaPago = DateTime.Parse(fechaString);
-                    }
-
-                    pagos.Add(new Pago
-                    {
-                        id = reader.GetInt32(idxId),
-                        id_contrato = reader.GetInt32(idxIdContrato),
-                        nro_pago = reader.GetInt32(idxNroPago),
-                        fecha_pago = fechaPago,
-                        estado = EstadoPago.pendiente,
-                        concepto = reader.GetString(idxConcepto)
-                    });
-                }
-                connection.Close();
-            }
-        }
-        return pagos;
-    }
-public DateTime? ObtenerFechaUltimoPagoRealizado(int contratoId)
-{
-    DateTime? fechaUltimoPago = null;
-    using (MySqlConnection connection = new MySqlConnection(connectionString))
-    {
-        var sql = @"
+            var sql = @"
             SELECT MAX(fecha_pago) AS UltimaFecha 
             FROM pago 
-            WHERE id_contrato = @idContrato AND estado_pago = 'recibido' AND fecha_pago IS NOT NULL;";
+            WHERE id_contrato = @idContrato AND estado = 'recibido' AND fecha_pago IS NOT NULL";
 
-        using (MySqlCommand command = new MySqlCommand(sql, connection))
-        {
-            connection.Open();
-            command.Parameters.AddWithValue("@idContrato", contratoId);
-            
-            var result = command.ExecuteScalar();
-            
-            if (result != null && result != DBNull.Value)
+            using (MySqlCommand command = new MySqlCommand(sql, connection))
             {
-                fechaUltimoPago = Convert.ToDateTime(result);
+                connection.Open();
+                command.Parameters.AddWithValue("@idContrato", contratoId);
+
+                var result = command.ExecuteScalar();
+
+                if (result != null && result != DBNull.Value)
+                {
+                    fechaUltimoPago = Convert.ToDateTime(result);
+                }
+                connection.Close();
             }
-            connection.Close();
         }
+        return fechaUltimoPago;
     }
-    return fechaUltimoPago;
-}
+public int ContarPagosRealizados(int idContrato)
+    {
+        int pagosRealizados = 0;
+        
+        string query = "SELECT COUNT(*) FROM pago WHERE id_contrato = @idContrato AND estado = 'recibido'";
+
+        using (var connection = new MySqlConnection(connectionString))
+        {
+            using (var command = new MySqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@idContrato", idContrato);
+
+                try
+                {
+                    connection.Open();
+                    object result = command.ExecuteScalar();
+                    
+                    if (result != null && result != DBNull.Value)
+                    {
+                        pagosRealizados = Convert.ToInt32(result);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error al contar pagos realizados en MySQL: {ex.Message}");
+                }
+            }
+        }
+
+        return pagosRealizados;
+    }
 }

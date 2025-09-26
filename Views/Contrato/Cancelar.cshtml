@@ -43,12 +43,14 @@
                 <strong>Multa Registrada: @multaMostrada</strong>
             </div>
         }
-        
+        <div id="calculoResumen" class="alert alert-warning d-none">
+        <p><strong>Pagos Vencidos y Pendientes:</strong> <span id="displayMesesAdeudados">0</span> meses por un total de <span id="displayTotalAdeudado">$0,00</span>.</p>
+        <p><strong>Multa por Cancelación:</strong> <span id="displayMultaCalculada">...</span></p>
+    </div>
         <form id="formCancelacion" asp-action="Cancelar" method="post">
             <input type="hidden" name="idContrato" value="@Model.id" />
             
             <p>Inmueble: <strong>@Model.Inmueble?.direccion</strong></p>
-            <p>Meses adeudados: <strong></strong></p>
             <p>Inquilino: 
             <strong>
             <br>Nombre: @Model.Inquilino?.NombreCompleto 
@@ -90,15 +92,17 @@
                 <h5 class="mt-4">Opciones de Pago:</h5>
 
 
+/////
+               <a asp-controller="Pagos" 
+                       asp-action="Detalles" 
+                       asp-route-id="@Model.id" 
+                       class="btn btn-sm btn-success">
+                        Pagar
+                    </a>
 
-                 <a id="linkPagar" 
-       href="@Url.Action("RegistrarPagoMulta", "Contrato", new { idContrato = Model.id, monto = Model.multa.GetValueOrDefault(0) })" 
-       class="btn btn-success me-2">
-        Pagar Multa Ahora
-    </a>
                 
                 <a href="@Url.Action("Index")" class="btn btn-secondary">
-                    Volver (Pagaré después)
+                    Volver (Pagar después)
                 </a>
             </div>
         </form>
@@ -113,27 +117,31 @@
             $('#fechaTerminacion').on('change', function () {
                 var fecha = $(this).val();
                 var idContrato = @Model.id;
-   $('#fechaTerminacionError').text('');
+                $('#fechaTerminacionError').text('');
+                $('#calculoResumen').addClass('d-none'); 
+                $('#btnConfirmar').prop('disabled', true);
                 if (fecha) {
                     $.ajax({
                         url: '@Url.Action("CalcularMultaAjax", "Contrato")',
                         type: 'GET',
                         data: { idContrato: idContrato, fechaTerminacion: fecha },
                         success: function (response) {
+                              console.log("Respuesta AJAX completa:", response); 
                             if (response.success) {
                                 $('#multaCalculada').val(response.multaTexto);
                                 $('#multaValor').val(response.multaValor);
+                                  $('#displayMesesAdeudados').text(response.mesesAdeudados);
+                                   $('#mesesAdeudadosDisplay').text(response.mesesAdeudados); 
+                                $('#displayTotalAdeudado').text(response.totalAdeudadoTexto);
+                                 $('#displayMultaCalculada').text(response.multaTexto);
+                                   $('#calculoResumen').removeClass('d-none');
                                 $('#btnConfirmar').prop('disabled', false); 
+                                 $('#totalAdeudadoValor').val(response.totalAdeudadoValor);
                             } else {
-                                 if (response.fechaTerminacionError) {
-                                    $('#fechaTerminacionError').text(response.fechaTerminacionError);
-                                    $('#multaCalculada').val('ERROR'); 
-                                } else {
-                                    $('#messagesContainer').prepend('<div class="alert alert-danger">Error: ' + (response.multa || "Error desconocido") + '</div>');
-                                }
-                                 $('#btnConfirmar').prop('disabled', true);
+                                $('#fechaTerminacionError').text(errorMsg);
+                                $('#multaCalculada').val('ERROR'); 
+                                $('#btnConfirmar').prop('disabled', true);
                             }
-                            
                         }
                     });
                 } else {
