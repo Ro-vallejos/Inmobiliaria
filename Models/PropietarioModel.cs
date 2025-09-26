@@ -21,9 +21,6 @@ public class Propietario
      [Required(ErrorMessage = "El telefono es obligatorio")]
    [RegularExpression(@"^(\d{8,12})?$", ErrorMessage = "El teléfono no es válido")]
     public string telefono { get; set; } = string.Empty; 
-    [Required(ErrorMessage = "La clave es obligatoria"), DataType(DataType.Password)]
-    [RegularExpression(@"^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,12}$", ErrorMessage = "La contraseña debe tener entre 8 y 12 caracteres, al menos una mayúscula, un número y un signo")]
-     public string password { get; set; } = string.Empty;
     public int estado { get; set; }
 public override string ToString()
 		{

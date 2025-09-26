@@ -31,6 +31,8 @@ builder.Services.AddTransient<IRepositorioContrato, RepositorioContrato>();
 builder.Services.AddTransient<IRepositorioPago, RepositorioPago>();
 builder.Services.AddTransient<IRepositorioTipoInmueble, RepositorioTipoInmueble>();
 builder.Services.AddTransient<IRepositorioUsuario, RepositorioUsuario>();
+builder.Services.AddTransient<IRepositorioAuditoria, RepositorioAuditoria>();
+
 
 var app = builder.Build();
 

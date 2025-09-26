@@ -13,7 +13,7 @@ namespace _net_integrador.Repositorios
             List<Propietario> propietarios = new List<Propietario>();
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
-                var query = "SELECT id, nombre, apellido, dni, email, telefono, estado, password FROM propietario";
+                var query = "SELECT id, nombre, apellido, dni, email, telefono, estado FROM propietario";
                 using (MySqlCommand command = new MySqlCommand(query, connection))
                 {
                     connection.Open();
@@ -27,7 +27,6 @@ namespace _net_integrador.Repositorios
                         propietario.dni = reader.GetString("dni");
                         propietario.email = reader.GetString("email");
                         propietario.telefono = reader.GetString("telefono");
-                        propietario.password = reader.IsDBNull(reader.GetOrdinal("password")) ? string.Empty : reader.GetString("password");
                         propietario.estado = reader.GetInt32("estado");
                         propietarios.Add(propietario);
                     }
@@ -42,7 +41,7 @@ namespace _net_integrador.Repositorios
             Propietario propietario = new Propietario();
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
-                var sql = "SELECT id, nombre, apellido, dni, email, telefono, estado, password FROM propietario WHERE id = @id";
+                var sql = "SELECT id, nombre, apellido, dni, email, telefono, estado FROM propietario WHERE id = @id";
                 using (MySqlCommand command = new MySqlCommand(sql, connection))
                 {
                     connection.Open();
@@ -56,7 +55,6 @@ namespace _net_integrador.Repositorios
                         propietario.dni = reader.GetString("dni");
                         propietario.email = reader.GetString("email");
                         propietario.telefono = reader.GetString("telefono");
-                        propietario.password = reader.GetString("password");
                         propietario.estado = reader.GetInt32("estado");
                     }
                     connection.Close();
@@ -104,7 +102,7 @@ namespace _net_integrador.Repositorios
         {
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
-                var sql = "INSERT INTO propietario (nombre, apellido, dni, email, telefono, password, estado) VALUES (@nombre, @apellido, @dni, @email, @telefono, @password, @estado)";
+                var sql = "INSERT INTO propietario (nombre, apellido, dni, email, telefono, estado) VALUES (@nombre, @apellido, @dni, @email, @telefono, @estado)";
                 using (MySqlCommand command = new MySqlCommand(sql, connection))
                 {
                     connection.Open();
@@ -113,7 +111,6 @@ namespace _net_integrador.Repositorios
                     command.Parameters.AddWithValue("@dni", propietario.dni);
                     command.Parameters.AddWithValue("@email", propietario.email);
                     command.Parameters.AddWithValue("@telefono", propietario.telefono);
-                    command.Parameters.AddWithValue("@password", propietario.password);
                     command.Parameters.AddWithValue("@estado", propietario.estado);
                     command.ExecuteNonQuery();
                     connection.Close();

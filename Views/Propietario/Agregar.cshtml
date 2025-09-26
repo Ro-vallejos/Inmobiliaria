@@ -36,11 +36,5 @@
          @Html.ValidationMessageFor(m => m.telefono, "", new { @class = "text-danger" })
 
     </div>
-    <div class="form-group">
-        @Html.LabelFor(m => m.password, "Contraseña")
-        @Html.TextBoxFor(m => m.password, new { @class = "form-control", type = "password" })
-        @Html.ValidationMessageFor(m => m.password, "", new { @class = "text-danger" })
-    </div>
-
     <button type="submit" class="btn btn-primary">Guardar</button>
 </form>
