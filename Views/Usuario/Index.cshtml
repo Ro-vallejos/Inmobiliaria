@@ -7,7 +7,6 @@
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center">
         <h2>Listado de Usuarios</h2>
-        @* Ahora usamos el método IsInRole() para una comprobación más robusta *@
         @if (User.IsInRole("Admin"))
         {
             <a asp-action="Agregar" class="btn btn-primary my-3">Agregar Nuevo Usuario</a>
@@ -55,7 +54,6 @@
                         }
                     </td>
                     <td>
-                        @* Ahora usamos el método IsInRole() en lugar de ViewBag *@
                         @if (User.IsInRole("Admin"))
                         {
                             @if (usuario.estado == 1)

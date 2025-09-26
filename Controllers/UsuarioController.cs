@@ -40,6 +40,7 @@ public class UsuarioController : Controller
     public IActionResult Editar(int id)
     {
         var usuarioSeleccionado = _usuarioRepo.ObtenerUsuarioId(id);
+        ViewBag.Accion = "Editar";
         return View(usuarioSeleccionado);
     }
 
@@ -162,7 +163,7 @@ public class UsuarioController : Controller
         {
             return RedirectToAction("Login");
         }
-
+        ViewBag.Accion = "EditarPerfil";
         return View("Editar", usuario);
     }
 
