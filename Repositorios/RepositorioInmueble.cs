@@ -15,7 +15,14 @@ namespace _net_integrador.Repositorios
             List<Inmueble> inmuebles = new List<Inmueble>();
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
-                var query = "SELECT i.id, i.direccion, i.uso, i.id_tipo, i.precio, i.estado, p.nombre AS nombrePropietario, p.apellido AS apellidoPropietario, t.tipo AS tipoInmueble FROM inmueble i JOIN propietario p ON i.id_propietario = p.id AND p.estado = 1 JOIN tipo_inmueble t ON i.id_tipo = t.id";
+                var query = @"SELECT 
+                                i.id, i.direccion, i.uso, i.id_tipo, i.precio, i.estado, 
+                                i.ambientes, i.eje_x, i.eje_y,
+                                p.nombre AS nombrePropietario, p.apellido AS apellidoPropietario, 
+                                t.tipo AS tipoInmueble
+                            FROM inmueble i 
+                            JOIN propietario p ON i.id_propietario = p.id AND p.estado = 1 
+                            JOIN tipo_inmueble t ON i.id_tipo = t.id";
 
                 using (MySqlCommand command = new MySqlCommand(query, connection))
                 {
@@ -31,6 +38,9 @@ namespace _net_integrador.Repositorios
                             precio = reader.GetDecimal("precio"),
                             estado = Enum.Parse<Estado>(reader.GetString("estado")),
                             direccion = reader.GetString("direccion"),
+                            ambientes = reader.GetInt32("ambientes"),
+                            eje_x = reader.GetString("eje_x"),
+                            eje_y = reader.GetString("eje_y"),
                             propietario = new Propietario
                             {
                                 nombre = reader.GetString("nombrePropietario"),
@@ -48,6 +58,7 @@ namespace _net_integrador.Repositorios
             }
             return inmuebles;
         }
+
 
         public Inmueble? ObtenerInmuebleId(int id)
         {

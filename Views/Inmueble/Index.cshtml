@@ -13,7 +13,6 @@
     </div>
 }
 
-
 <div class="text-center">
     <h1 class="display-4">Lista de Inmuebles</h1>
 </div>
@@ -21,9 +20,7 @@
 <p>
     <a class="btn btn-success" asp-action="Agregar">Agregar Inmueble</a>
     <a asp-action="Index" asp-controller="Home" class="btn btn-secondary">Volver</a>
-
 </p>
-
 
 <table class="table table-striped" id="tablaInmuebles">
     <thead>
@@ -34,6 +31,9 @@
             <th>Uso</th>
             <th>Tipo</th>
             <th>Precio</th>
+            <th>Ambientes</th>
+            <th>Latitud</th>
+            <th>Longitud</th>
             <th>Estado</th>
             <th>Acciones</th>
         </tr>
@@ -48,10 +48,26 @@
                 <td>@i.uso</td>
                 <td>@i.tipoInmueble?.tipo</td>
                 <td>@i.precio?.ToString("C", new System.Globalization.CultureInfo("es-AR"))</td>
-                <td>@i.estado</td>
+                <td>@i.ambientes</td>
+                <td>@i.eje_y</td>
+                <td>@i.eje_x</td>
+                <td>
+                    @if (i.estado == _net_integrador.Models.Estado.Disponible)
+                    {
+                        <span class="badge bg-success">Disponible</span>
+                    }
+                    else if (i.estado == _net_integrador.Models.Estado.Suspendido)
+                    {
+                        <span class="badge bg-warning text-dark">Suspendido</span>
+                    }
+                    else if (i.estado == _net_integrador.Models.Estado.Alquilado)
+                    {
+                        <span class="badge bg-danger">Alquilado</span>
+                    }
+                </td>
                 <td>
                     @Html.ActionLink("Editar", "Editar", new { id = i.id }, new { @class = "btn btn-primary btn-sm" })
-                @if (i.estado == _net_integrador.Models.Estado.Disponible)
+                    @if (i.estado == _net_integrador.Models.Estado.Disponible)
                     {
                         @Html.ActionLink(
                             "Suspender",
@@ -67,9 +83,6 @@
                             new { id = i.id },
                             new { @class = "btn btn-success btn-sm", onclick = "return confirm('¿Seguro que querés activar este inmueble?');" })
                     }
-
-
-                    @Html.ActionLink("Detalles", "Detalles", new { id = i.id }, new { @class = "btn btn-info btn-sm" })
                 </td>
             </tr>
         }
@@ -84,7 +97,7 @@
                     "url": "//cdn.datatables.net/plug-ins/1.13.8/i18n/es-ES.json"
                 },
                 "columnDefs": [
-                    { "orderable": false, "targets": 7 }
+                    { "orderable": false, "targets": 10 }
                 ]
             });
         });
