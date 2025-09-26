@@ -8,7 +8,9 @@ namespace _net_integrador.Repositorios
          List<Propietario> ObtenerPropietariosActivos();
         Propietario ObtenerPropietarioId(int id);
         Propietario ActualizarPropietario(Propietario propietario);
-        void EliminarPropietario(int id);
+        bool EliminarPropietario(int id);
+        void ActivarPropietario(int id);
+
         void AgregarPropietario(Propietario propietario);
         bool ExisteDni(string dni, int? idExcluido = null);
         bool ExisteEmail(string email, int? idExcluido = null);

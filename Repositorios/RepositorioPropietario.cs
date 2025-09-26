@@ -84,11 +84,43 @@ namespace _net_integrador.Repositorios
             return propietario;
         }
 
-        public void EliminarPropietario(int id)
+        public bool EliminarPropietario(int id)
         {
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
-                var query = "UPDATE propietario SET estado = 0 WHERE id = @id";
+                connection.Open();
+                var checkQuery = "SELECT COUNT(*) FROM contrato c INNER JOIN  inmueble i ON c.id_inmueble = i.id WHERE i.id_propietario = @idPropietario AND c.estado = 1";
+                using (MySqlCommand checkCommand = new MySqlCommand(checkQuery, connection))
+                {
+                    checkCommand.Parameters.AddWithValue("@idPropietario", id);
+                    int contratosActivos = Convert.ToInt32(checkCommand.ExecuteScalar());
+
+                    if (contratosActivos > 0)
+                    {
+                        return false;
+                    }
+                }
+                var updateQuery = "UPDATE propietario SET estado = 0 WHERE id = @id";
+                using (MySqlCommand updateCommand = new MySqlCommand(updateQuery, connection))
+                {
+                    updateCommand.Parameters.AddWithValue("@id", id);
+                    updateCommand.ExecuteNonQuery();
+                }
+                var updateQueryInmueble = "UPDATE inmueble SET estado = 'Suspendido' WHERE id_propietario = @idPropietario";
+                using (MySqlCommand updateCommand = new MySqlCommand(updateQueryInmueble, connection))
+                {
+                    updateCommand.Parameters.AddWithValue("@idPropietario", id);
+                    updateCommand.ExecuteNonQuery();
+                }
+                connection.Close();
+            }
+            return true;
+        }
+        public void ActivarPropietario(int id)
+        {
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                var query = "UPDATE propietario SET estado = 1 WHERE id = @id";
                 using (var command = new MySqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@id", id);
@@ -155,8 +187,8 @@ namespace _net_integrador.Repositorios
                 }
             }
         }
-        
-         public List<Propietario> ObtenerPropietariosActivos()
+
+        public List<Propietario> ObtenerPropietariosActivos()
         {
             List<Propietario> propietarios = new List<Propietario>();
             using (MySqlConnection connection = new MySqlConnection(connectionString))
@@ -183,7 +215,7 @@ namespace _net_integrador.Repositorios
                 return propietarios;
             }
         }
-        
+
 
     }
 }

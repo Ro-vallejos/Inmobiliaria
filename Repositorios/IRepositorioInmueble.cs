@@ -10,7 +10,7 @@ namespace _net_integrador.Repositorios
         void AgregarInmueble(Inmueble inmuebleNuevo);
         void ActualizarInmueble(Inmueble inmuebleEditado);
         void SuspenderOferta(int id);
-        void ActivarOferta(int id);
+        bool ActivarOferta(int id);
         List<Inmueble> ObtenerInmueblesDisponibles();
         List<Inmueble> ObtenerInmueblesPorPropietario(int propietarioId);
         void MarcarComoAlquilado(int id);

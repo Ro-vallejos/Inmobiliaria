@@ -9,14 +9,13 @@ public class RepositorioContrato : RepositorioBase, IRepositorioContrato
 {
     public RepositorioContrato(IConfiguration configuration) : base(configuration) { }
 
-    public List<Contrato> ObtenerContratos()
-    {
-        List<Contrato> contratos = new List<Contrato>();
 
-        using (MySqlConnection connection = new MySqlConnection(connectionString))
-        {
-            
-            var query = @"
+public List<Contrato> ObtenerContratos()
+{
+    List<Contrato> contratos = new List<Contrato>();
+    using (MySqlConnection connection = new MySqlConnection(connectionString))
+    {
+        var query = @"
             SELECT 
                 c.id, c.id_inquilino, c.id_inmueble, c.fecha_inicio, c.fecha_fin, c.monto_mensual, c.estado AS estadoContrato, c.multa, c.fecha_terminacion_anticipada,
                 i.id AS idInquilino, i.nombre AS nombreInquilino, i.apellido AS apellidoInquilino, i.dni AS dniInquilino, 
@@ -26,51 +25,21 @@ public class RepositorioContrato : RepositorioBase, IRepositorioContrato
             JOIN inquilino i ON c.id_inquilino = i.id
             JOIN inmueble inm ON c.id_inmueble = inm.id";
 
-            using (MySqlCommand command = new MySqlCommand(query, connection))
+        using (MySqlCommand command = new MySqlCommand(query, connection))
+        {
+            connection.Open();
+            var reader = command.ExecuteReader();
+
+            while (reader.Read())
             {
-                connection.Open();
-                var reader = command.ExecuteReader();
-
-                while (reader.Read())
-                {
-                    contratos.Add(new Contrato
-                    {
-                        id = reader.GetInt32("id"),
-                        id_inquilino = reader.GetInt32("id_inquilino"),
-                        id_inmueble = reader.GetInt32("id_inmueble"),
-                        fecha_inicio = reader.GetDateTime("fecha_inicio"),
-                        fecha_fin = reader.GetDateTime("fecha_fin"),
-                        monto_mensual = reader.GetDecimal("monto_mensual"),
-                        estado = reader.GetInt32("estadoContrato"),
-                        multa = reader.IsDBNull(reader.GetOrdinal("multa")) ? (decimal?)null : reader.GetDecimal("multa"),
-                        fecha_terminacion_anticipada = reader.IsDBNull(reader.GetOrdinal("fecha_terminacion_anticipada"))
-                                                        ? (DateTime?)null : reader.GetDateTime("fecha_terminacion_anticipada"),
-
-                        Inquilino = new Inquilino
-                        {
-                            id = reader.GetInt32("idInquilino"),
-                            nombre = reader.GetString("nombreInquilino"),
-                            apellido = reader.GetString("apellidoInquilino"),
-                            dni = reader.GetString("dniInquilino"),
-                            email = reader.GetString("emailInquilino"),
-                            telefono = reader.GetString("telefonoInquilino"),
-                            estado = reader.GetInt32("estadoInquilino")
-                        },
-
-                        Inmueble = new Inmueble
-                        {
-                            id = reader.GetInt32("idInmueble"),
-                            direccion = reader.GetString("direccion")
-                        }
-                    });
-                }
-
-                connection.Close();
+                contratos.Add(MapearContrato(reader)); 
             }
-        }
 
-        return contratos;
+            connection.Close();
+        }
     }
+    return contratos;
+}
 
 
     public Contrato? ObtenerContratoId(int id)
@@ -108,8 +77,7 @@ public class RepositorioContrato : RepositorioBase, IRepositorioContrato
                         monto_mensual = reader.GetDecimal("monto_mensual"),
                         estado = reader.GetInt32("estadoContrato"),
                         multa = reader.IsDBNull(reader.GetOrdinal("multa")) ? (decimal?)null : reader.GetDecimal("multa"),
-                        fecha_terminacion_anticipada = reader.IsDBNull(reader.GetOrdinal("fecha_terminacion_anticipada"))
-                                                        ? (DateTime?)null : reader.GetDateTime("fecha_terminacion_anticipada"),
+                        fecha_terminacion_anticipada = reader.IsDBNull(reader.GetOrdinal("fecha_terminacion_anticipada"))? (DateTime?)null : reader.GetDateTime("fecha_terminacion_anticipada"),
 
                         Inquilino = new Inquilino
                         {
@@ -168,7 +136,7 @@ public class RepositorioContrato : RepositorioBase, IRepositorioContrato
 
     public void ActualizarContrato(Contrato contrato)
     {
-        
+
         using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
             var sql = @"
@@ -206,7 +174,7 @@ public class RepositorioContrato : RepositorioBase, IRepositorioContrato
 
     public List<Contrato> ObtenerContratoPorInmueble(int idInmueble, int idContrato)
     {
-         List<Contrato> contratos = new List<Contrato>();
+        List<Contrato> contratos = new List<Contrato>();
 
         using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
@@ -243,5 +211,106 @@ public class RepositorioContrato : RepositorioBase, IRepositorioContrato
 
         return contratos;
     }
-    
+    public List<Contrato> ObtenerContratosVigentesPorRango(DateTime fechaInicio, DateTime fechaFin)
+    {
+        List<Contrato> contratos = new List<Contrato>();
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
+        {
+            var query = @"
+            SELECT 
+                c.id, c.id_inquilino, c.id_inmueble, c.fecha_inicio, c.fecha_fin, c.monto_mensual, c.estado AS estadoContrato, c.multa, c.fecha_terminacion_anticipada,
+                i.id AS idInquilino, i.nombre AS nombreInquilino, i.apellido AS apellidoInquilino, i.dni AS dniInquilino, 
+                i.email AS emailInquilino, i.telefono AS telefonoInquilino, i.estado AS estadoInquilino,
+                inm.id AS idInmueble, inm.direccion
+            FROM contrato c
+            JOIN inquilino i ON c.id_inquilino = i.id
+            JOIN inmueble inm ON c.id_inmueble = inm.id
+            WHERE c.estado = 1                                       
+            AND c.fecha_inicio <= @fechaFin                          
+            AND c.fecha_fin >= @fechaInicio";
+
+            using (MySqlCommand command = new MySqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@fechaInicio", fechaInicio);
+                command.Parameters.AddWithValue("@fechaFin", fechaFin);
+
+                connection.Open();
+                var reader = command.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    contratos.Add(MapearContrato(reader));
+                }
+            }
+        }
+
+        return contratos;
+    }
+    private Contrato MapearContrato(MySqlDataReader reader)
+    {
+        return new Contrato
+        {
+            id = reader.GetInt32("id"),
+            id_inquilino = reader.GetInt32("id_inquilino"),
+            id_inmueble = reader.GetInt32("id_inmueble"),
+            fecha_inicio = reader.GetDateTime("fecha_inicio"),
+            fecha_fin = reader.GetDateTime("fecha_fin"),
+            monto_mensual = reader.GetDecimal("monto_mensual"),
+            estado = reader.GetInt32("estadoContrato"),
+            multa = reader.IsDBNull(reader.GetOrdinal("multa")) ? (decimal?)null : reader.GetDecimal("multa"),
+            fecha_terminacion_anticipada = reader.IsDBNull(reader.GetOrdinal("fecha_terminacion_anticipada")) ? (DateTime?)null : reader.GetDateTime("fecha_terminacion_anticipada"),
+
+            Inquilino = new Inquilino
+            {
+                id = reader.GetInt32("idInquilino"),
+                nombre = reader.GetString("nombreInquilino"),
+                apellido = reader.GetString("apellidoInquilino"),
+                dni = reader.GetString("dniInquilino"),
+                email = reader.GetString("emailInquilino"),
+                telefono = reader.GetString("telefonoInquilino"),
+                estado = reader.GetInt32("estadoInquilino")
+            },
+
+            Inmueble = new Inmueble
+            {
+                id = reader.GetInt32("idInmueble"),
+                direccion = reader.GetString("direccion"),
+            }
+        };
+    }
+
+public List<Contrato> ObtenerContratosPorVencimiento(int diasHastaVencimiento)
+{
+    List<Contrato> contratos = new List<Contrato>();
+    using (MySqlConnection connection = new MySqlConnection(connectionString))
+    {
+        var query = @"
+            SELECT 
+                c.id, c.id_inquilino, c.id_inmueble, c.fecha_inicio, c.fecha_fin, c.monto_mensual, c.estado AS estadoContrato, c.multa, c.fecha_terminacion_anticipada,
+                i.id AS idInquilino, i.nombre AS nombreInquilino, i.apellido AS apellidoInquilino, i.dni AS dniInquilino, 
+                i.email AS emailInquilino, i.telefono AS telefonoInquilino, i.estado AS estadoInquilino,
+                inm.id AS idInmueble, inm.direccion
+            FROM contrato c
+            JOIN inquilino i ON c.id_inquilino = i.id
+            JOIN inmueble inm ON c.id_inmueble = inm.id
+            WHERE c.estado = 1 
+            AND DATEDIFF(c.fecha_fin, CURDATE()) BETWEEN 0 AND @dias"; 
+            
+        using (MySqlCommand command = new MySqlCommand(query, connection))
+        {
+            command.Parameters.AddWithValue("@dias", diasHastaVencimiento);
+
+            connection.Open();
+            var reader = command.ExecuteReader();
+
+            while (reader.Read())
+            {
+                contratos.Add(MapearContrato(reader)); 
+            }
+            connection.Close();
+        }
+    }
+    return contratos;
+}
+
 }

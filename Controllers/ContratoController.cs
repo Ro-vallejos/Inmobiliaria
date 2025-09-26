@@ -27,12 +27,64 @@ public class ContratoController : Controller
         _inquilinoRepo = inquilinoRepo;
         _inmuebleRepo = inmuebleRepo;
     }
+// Dentro de ContratoController
 
-    public IActionResult Index()
+// Añadimos el nuevo parámetro 'diasVencimiento'
+public IActionResult Index(DateTime? fechaInicio, DateTime? fechaFin, int? diasVencimiento)
+{
+    IEnumerable<Contrato> listaContratos = new List<Contrato>();
+    
+    ViewBag.FechaInicio = null;
+    ViewBag.FechaFin = null;
+    ViewBag.DiasVencimiento = diasVencimiento; // Retenemos el valor seleccionado
+
+    // 1. FILTRO POR RANGO DE VIGENCIA (Lógica existente)
+    if (fechaInicio.HasValue && fechaFin.HasValue && fechaInicio <= fechaFin)
     {
-        var listaContratos = _contratoRepo.ObtenerContratos();
-        return View(listaContratos);
+        ViewBag.FechaInicio = fechaInicio.Value.ToString("yyyy-MM-dd");
+        ViewBag.FechaFin = fechaFin.Value.ToString("yyyy-MM-dd");
+        ViewBag.DiasVencimiento = null; // Reiniciamos el filtro de días si se usa el de rango
+
+        listaContratos = _contratoRepo.ObtenerContratosVigentesPorRango(fechaInicio.Value, fechaFin.Value);
+        TempData["Info"] = $"Mostrando contratos activos que se solapan entre {fechaInicio.Value:d} y {fechaFin.Value:d}.";
     }
+    // 2. FILTRO POR DÍAS HASTA EL VENCIMIENTO (Nueva lógica)
+    else if (diasVencimiento.HasValue && diasVencimiento.Value > 0)
+    {
+        // Si se usa este filtro, reiniciamos las fechas de rango en el ViewBag
+        ViewBag.FechaInicio = null;
+        ViewBag.FechaFin = null;
+        
+        listaContratos = _contratoRepo.ObtenerContratosPorVencimiento(diasVencimiento.Value);
+        TempData["Info"] = $"Mostrando contratos que vencen dentro de {diasVencimiento.Value} días o menos. ⚠️";
+    }
+    // 3. CASO POR DEFECTO (Mostrar todos)
+    else
+    {
+        listaContratos = _contratoRepo.ObtenerContratos();
+        // Si se limpió el filtro de rango, aseguramos que el de días también se muestre limpio
+        ViewBag.DiasVencimiento = null; 
+    }
+
+    return View(listaContratos);
+}
+    // public IActionResult Index(string tipoFiltro, DateTime? fechaInicio, DateTime? fechaFin,int? diasVencimiento)
+    // {
+    //     IEnumerable<Contrato> listaContratos = new List<Contrato>();
+
+    //     if (fechaInicio.HasValue && fechaFin.HasValue && fechaInicio <= fechaFin)
+    //     {
+    //         ViewBag.FechaInicio = fechaInicio.Value.ToString("yyyy-MM-dd");
+    //         ViewBag.FechaFin = fechaFin.Value.ToString("yyyy-MM-dd");
+    //         listaContratos = _contratoRepo.ObtenerContratosVigentesPorRango(fechaInicio.Value, fechaFin.Value);
+    //         TempData["Info"] = $"Mostrando contratos activos que se solapan entre {fechaInicio.Value:d} y {fechaFin.Value:d}.";
+    //     }
+    //     else
+    //     {
+    //         listaContratos = _contratoRepo.ObtenerContratos();
+    //     }
+    //     return View(listaContratos);
+    // }
 
     [HttpGet]
     public IActionResult Agregar()
@@ -209,7 +261,20 @@ public class ContratoController : Controller
 
         if (contrato == null)
         {
-            return Json(new { success = false, error = "El contrato no fue encontrado." });
+            return Json(new { success = false, fechaTerminacionError = "El contrato no fue encontrado." });
+        }
+        if (!contrato.fecha_inicio.HasValue || !contrato.fecha_fin.HasValue)
+        {
+            return Json(new { success = false, fechaTerminacionError = "El contrato no tiene fechas de inicio o fin válidas." });
+        }
+        if (fechaTerminacion.Date >= contrato.fecha_fin.Value.Date)
+        {
+            return Json(new { success = false, fechaTerminacionError = "La fecha de terminación debe ser estrictamente anterior a la fecha de finalización original." });
+        }
+
+        if (fechaTerminacion.Date <= contrato.fecha_inicio.Value.Date)
+        {
+            return Json(new { success = false, fechaTerminacionError = "La fecha de terminación debe ser posterior a la fecha de inicio del contrato." });
         }
 
 
@@ -264,13 +329,33 @@ public class ContratoController : Controller
 
         if (!DateTime.TryParse(fechaTerminacion, out DateTime fecha))
         {
-            return Json(new { success = false, multa = "Fecha inválida" });
+            return Json(new { success = false, fechaTerminacionError = "Fecha inválida" });
         }
 
         if (contrato == null)
         {
-            return Json(new { success = false, multa = "Contrato no encontrado" });
+            return Json(new { success = false, fechaTerminacionError = "Contrato no encontrado" });
         }
+        if (!contrato.fecha_inicio.HasValue || !contrato.fecha_fin.HasValue)
+        {
+            return Json(new { success = false, fechaTerminacionError = "El contrato no tiene fechas de inicio o fin válidas." });
+        }
+        if (fecha.Date >= contrato.fecha_fin.Value.Date)
+        {
+            return Json(new { success = false, fechaTerminacionError = "La fecha debe ser ANTERIOR a la fecha de finalización original." });
+        }
+
+        if (fecha.Date <= contrato.fecha_inicio.Value.Date)
+        {
+            return Json(new { success = false, fechaTerminacionError = "La fecha debe ser POSTERIOR a la fecha de inicio del contrato." });
+        }
+
+        //  Posterior al Último Pago
+        // if (fechaUltimoPago.HasValue && fecha.Date < fechaUltimoPago.Value.Date)
+        // {
+        //     return Json(new { success = false, multa = $"La fecha de terminación no puede ser anterior al último pago registrado ({fechaUltimoPago.Value.ToShortDateString()})." });
+        // }
+
 
         decimal multaCalculada = CalcularMulta(contrato, fecha);
         return Json(new { success = true, multaTexto = multaCalculada.ToString("C", new System.Globalization.CultureInfo("es-AR")), multaValor = multaCalculada });

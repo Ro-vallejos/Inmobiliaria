@@ -13,6 +13,7 @@
     </div>
 }
 
+
 <div class="text-center">
     <h1 class="display-4">Lista de Inmuebles</h1>
 </div>
@@ -21,15 +22,8 @@
     <a class="btn btn-success" asp-action="Agregar">Agregar Inmueble</a>
 </p>
 
-<div class="d-flex align-items-center mb-3">
-    <label for="propietarioSelect" class="me-2">Filtrar por propietario:</label>
-    <select id="propietarioSelect" class="form-select me-2" asp-items="@ViewBag.Propietarios">
-        <option value="">Todos los propietarios</option>
-    </select>
-    <button id="btnFiltrar" class="btn btn-primary">Filtrar</button>
-</div>
 
-<table class="table table-striped">
+<table class="table table-striped" id="tablaInmuebles">
     <thead>
         <tr>
             <th>Código</th>
@@ -55,7 +49,7 @@
                 <td>@i.estado</td>
                 <td>
                     @Html.ActionLink("Editar", "Editar", new { id = i.id }, new { @class = "btn btn-primary btn-sm" })
-                @if (i.estado == Estado.Disponible)
+                @if (i.estado == _net_integrador.Models.Estado.Disponible)
                     {
                         @Html.ActionLink(
                             "Suspender",
@@ -63,7 +57,7 @@
                             new { id = i.id },
                             new { @class = "btn btn-warning btn-sm", onclick = "return confirm('¿Seguro que querés suspender este inmueble?');" })
                     }
-                    else if (i.estado == Estado.Suspendido)
+                    else if (i.estado == _net_integrador.Models.Estado.Suspendido)
                     {
                         @Html.ActionLink(
                             "Activar",
@@ -82,19 +76,15 @@
 
 @section Scripts {
     <script>
-        var propietarioSelect = document.getElementById("propietarioSelect");
-        var seleccionado = '@(propietarioIdSeleccionado?.ToString() ?? "")';
-        if (seleccionado) {
-            propietarioSelect.value = seleccionado;
-        }
-
-        document.getElementById("btnFiltrar").addEventListener("click", function () {
-            var propietarioId = propietarioSelect.value;
-            if (propietarioId) {
-                window.location.href = '@Url.Action("PorPropietario", "Inmueble")' + '?propietarioId=' + propietarioId;
-            } else {
-                window.location.href = '@Url.Action("Index", "Inmueble")';
-            }
+        $(document).ready(function () {
+            $('#tablaInmuebles').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.13.8/i18n/es-ES.json"
+                },
+                "columnDefs": [
+                    { "orderable": false, "targets": 7 }
+                ]
+            });
         });
     </script>
 }

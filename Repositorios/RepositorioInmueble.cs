@@ -152,18 +152,32 @@ namespace _net_integrador.Repositorios
                 }
             }
         }
-        public void ActivarOferta(int id)
+        public bool ActivarOferta(int id)
         {
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
+                connection.Open();
+                var querySelect = "SELECT p.estado FROM inmueble i INNER JOIN propietario p ON i.id_propietario=p.id WHERE i.id=@idInmueble";
+                using (var checkCommand = new MySqlCommand(querySelect, connection))
+                {
+                    checkCommand.Parameters.AddWithValue("@idInmueble", id);
+
+                    object result = checkCommand.ExecuteScalar();
+
+                    if (result == null || Convert.ToInt32(result) == 0)
+                    {
+                        connection.Close();
+                        return false;
+                    }
+                }
                 var query = "UPDATE inmueble SET estado = 'Disponible' WHERE id = @id";
                 using (var command = new MySqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@id", id);
-                    connection.Open();
                     command.ExecuteNonQuery();
-                    connection.Close();
                 }
+                connection.Close();
+                return true;
             }
         }
 
@@ -247,7 +261,7 @@ namespace _net_integrador.Repositorios
         }
         public void MarcarComoAlquilado(int id)
         {
-                string sql = "UPDATE inmueble SET estado=@estado WHERE id=@id";
+            string sql = "UPDATE inmueble SET estado=@estado WHERE id=@id";
 
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
@@ -268,33 +282,33 @@ namespace _net_integrador.Repositorios
             {
                 string sql = "SELECT id, direccion, id_propietario, uso, id_tipo, ambientes, eje_x, eje_y, precio, estado FROM inmueble WHERE estado!=2 AND id NOT IN (SELECT id_inmueble FROM contrato WHERE NOT (@fin <= fecha_inicio OR @inicio >= fecha_fin) AND (fecha_terminacion_anticipada IS NULL OR fecha_terminacion_anticipada > @inicio) AND estado = 1)";
 
-             using (MySqlCommand cmd = new MySqlCommand(sql, connection))
-        {
-            cmd.Parameters.AddWithValue("@inicio", inicio);
-            cmd.Parameters.AddWithValue("@fin", fin);
-
-            connection.Open();
-            using (var reader = cmd.ExecuteReader())
-            {
-                while (reader.Read())
+                using (MySqlCommand cmd = new MySqlCommand(sql, connection))
                 {
-                    inmuebles.Add(new Inmueble
+                    cmd.Parameters.AddWithValue("@inicio", inicio);
+                    cmd.Parameters.AddWithValue("@fin", fin);
+
+                    connection.Open();
+                    using (var reader = cmd.ExecuteReader())
                     {
-                        id = reader.GetInt32("id"),
-                        direccion = reader.GetString("direccion"),
-                        id_propietario = reader.GetInt32("id_propietario"),
-                        uso = Enum.Parse<UsoInmueble>(reader.GetString("uso")),
-                        id_tipo = reader.GetInt32("id_tipo"),
-                        ambientes = reader.GetInt32("ambientes"),
-                        eje_x = reader.GetString("eje_x"),
-                        eje_y = reader.GetString("eje_y"),
-                        precio = reader.GetDecimal("precio"),
-                        estado = Enum.Parse<Estado>(reader.GetString("estado"))
-                    });
+                        while (reader.Read())
+                        {
+                            inmuebles.Add(new Inmueble
+                            {
+                                id = reader.GetInt32("id"),
+                                direccion = reader.GetString("direccion"),
+                                id_propietario = reader.GetInt32("id_propietario"),
+                                uso = Enum.Parse<UsoInmueble>(reader.GetString("uso")),
+                                id_tipo = reader.GetInt32("id_tipo"),
+                                ambientes = reader.GetInt32("ambientes"),
+                                eje_x = reader.GetString("eje_x"),
+                                eje_y = reader.GetString("eje_y"),
+                                precio = reader.GetDecimal("precio"),
+                                estado = Enum.Parse<Estado>(reader.GetString("estado"))
+                            });
+                        }
+                    }
+                    connection.Close();
                 }
-            }
-            connection.Close();
-        }
             }
             return inmuebles;
         }

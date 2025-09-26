@@ -92,11 +92,38 @@ namespace _net_integrador.Repositorios
             return inquilino;
         }
 
-        public void EliminarInquilino(int id)
+       public bool EliminarInquilino(int id)
+{
+    using (MySqlConnection connection = new MySqlConnection(connectionString))
+    {
+        connection.Open();
+        var checkQuery = "SELECT COUNT(*) FROM contrato WHERE id_inquilino = @id AND estado = 1";
+        using (MySqlCommand checkCommand = new MySqlCommand(checkQuery, connection))
+        {
+            checkCommand.Parameters.AddWithValue("@id", id);
+            int contratosActivos = Convert.ToInt32(checkCommand.ExecuteScalar());
+
+            if (contratosActivos > 0)
+            {
+                return false; 
+            }
+        }
+        var updateQuery = "UPDATE inquilino SET estado = 0 WHERE id = @id";
+        using (MySqlCommand updateCommand = new MySqlCommand(updateQuery, connection))
+        {
+            updateCommand.Parameters.AddWithValue("@id", id);
+            updateCommand.ExecuteNonQuery();
+        }
+
+        connection.Close();
+    }
+    return true; 
+}
+         public void ActivarInquilino(int id)
         {
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
-                var query = "UPDATE inquilino SET estado = 0 WHERE id = @id";
+                var query = "UPDATE inquilino SET estado = 1 WHERE id = @id";
                 using (MySqlCommand command = new MySqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@id", id);

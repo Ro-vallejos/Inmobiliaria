@@ -126,7 +126,21 @@ namespace _net_integrador.Controllers
 
         public IActionResult Eliminar(int id)
         {
-            _inquilinoRepo.EliminarInquilino(id);
+            bool eliminacionExitosa = _inquilinoRepo.EliminarInquilino(id);
+
+            if (eliminacionExitosa)
+            {
+                TempData["Exito"] = "Inquilino eliminado correctamente";
+            }
+            else
+            {
+                TempData["Error"] = "No se puede eliminar el inquilino porque tiene un contrato activo";
+            }
+            return RedirectToAction("Index");
+        }
+        public IActionResult Activar(int id)
+        {
+            _inquilinoRepo.ActivarInquilino(id);
             return RedirectToAction("Index");
         }
     }
