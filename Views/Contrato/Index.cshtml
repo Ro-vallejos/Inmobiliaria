@@ -97,7 +97,7 @@
                         @Html.ActionLink("Editar", "Editar", new { id = c.id }, new { @class = "btn btn-primary btn-sm" })
                         @if (User.IsInRole("Admin"))
                         {
-                            @Html.ActionLink("Detalles", "Detalles", new { id = c.id }, new { @class = "btn btn-info btn-sm" })
+                            @Html.ActionLink("Auditoria", "Detalles", new { id = c.id }, new { @class = "btn btn-info btn-sm" })
                         }
                         @Html.ActionLink("Renovar", "Renovar", new { id = c.id }, new { @class = "btn btn-danger btn-sm" })
                         
