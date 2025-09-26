@@ -23,30 +23,36 @@ public class PagoController : Controller
         return View(listaPagos);
     }
     
-    [HttpGet]
-    public IActionResult Agregar(int contratoId)
+    [HttpPost]
+    public IActionResult Recibir(int id)
     {
-        ViewBag.ContratoId = contratoId;
-        return View();
+        var pago = _pagoRepo.ObtenerPagoId(id);
+        if (pago == null)
+        {
+            TempData["Error"] = "Pago no encontrado.";
+            return RedirectToAction("Index", new { contratoId = TempData["ContratoId"] });
+        }
+        
+        pago.estado = EstadoPago.recibido;
+        _pagoRepo.ActualizarPago(pago);
+        
+        TempData["Exito"] = "Pago recibido con éxito";
+        return RedirectToAction("Index", new { contratoId = pago.id_contrato });
     }
 
     public IActionResult Anular(int id)
     {
-        _pagoRepo.AnularPago(id);
-        TempData["Exito"] = "Pago anulado con éxito";
-        return RedirectToAction("Index", new { contratoId = TempData["ContratoId"] });
-    }
-
-    [HttpPost]
-    public IActionResult Agregar(Pago pagoNuevo)
-    {
-        if (ModelState.IsValid)
+        var pago = _pagoRepo.ObtenerPagoId(id);
+        if (pago == null)
         {
-            pagoNuevo.estado = 1;
-            _pagoRepo.AgregarPago(pagoNuevo);
-            TempData["Exito"] = "Pago agregado con éxito";
-            return RedirectToAction("Index", new { contratoId = pagoNuevo.id_contrato });
+            TempData["Error"] = "Pago no encontrado.";
+            return RedirectToAction("Index", new { contratoId = TempData["ContratoId"] });
         }
-        return View("Agregar", pagoNuevo);
+        
+        pago.estado = EstadoPago.anulado;
+        _pagoRepo.ActualizarPago(pago);
+
+        TempData["Exito"] = "Pago anulado con éxito";
+        return RedirectToAction("Index", new { contratoId = pago.id_contrato });
     }
 }
