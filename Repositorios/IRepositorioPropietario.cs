@@ -5,6 +5,7 @@ namespace _net_integrador.Repositorios
     public interface IRepositorioPropietario
     {
         List<Propietario> ObtenerPropietarios();
+         List<Propietario> ObtenerPropietariosActivos();
         Propietario ObtenerPropietarioId(int id);
         Propietario ActualizarPropietario(Propietario propietario);
         void EliminarPropietario(int id);

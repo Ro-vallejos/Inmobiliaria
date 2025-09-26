@@ -35,7 +35,7 @@ namespace _net_integrador.Repositorios
                 return propietarios;
             }
         }
-        
+
         public Propietario ObtenerPropietarioId(int id)
         {
             Propietario propietario = new Propietario();
@@ -136,7 +136,7 @@ namespace _net_integrador.Repositorios
                 }
             }
         }
-        
+
         public bool ExisteEmail(string email, int? idExcluido = null)
         {
             using (MySqlConnection connection = new MySqlConnection(connectionString))
@@ -155,5 +155,35 @@ namespace _net_integrador.Repositorios
                 }
             }
         }
+        
+         public List<Propietario> ObtenerPropietariosActivos()
+        {
+            List<Propietario> propietarios = new List<Propietario>();
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                var query = "SELECT id, nombre, apellido, dni, email, telefono, estado FROM propietario WHERE estado = 1";
+                using (MySqlCommand command = new MySqlCommand(query, connection))
+                {
+                    connection.Open();
+                    var reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        Propietario propietario = new Propietario();
+                        propietario.id = reader.GetInt32("id");
+                        propietario.nombre = reader.GetString("nombre");
+                        propietario.apellido = reader.GetString("apellido");
+                        propietario.dni = reader.GetString("dni");
+                        propietario.email = reader.GetString("email");
+                        propietario.telefono = reader.GetString("telefono");
+                        propietario.estado = reader.GetInt32("estado");
+                        propietarios.Add(propietario);
+                    }
+                    connection.Close();
+                }
+                return propietarios;
+            }
+        }
+        
+
     }
 }

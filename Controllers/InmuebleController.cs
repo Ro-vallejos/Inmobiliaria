@@ -68,7 +68,7 @@ public class InmuebleController : Controller
     [HttpGet]
     public IActionResult Agregar()
     {
-        var propietarios = _repositorioPropietario.ObtenerPropietarios();
+        var propietarios = _repositorioPropietario.ObtenerPropietariosActivos();
         ViewBag.Propietarios = new SelectList(propietarios, "id", "NombreCompleto");
         ViewBag.TiposInmueble = new SelectList(_repositorioTipoInmueble.ObtenerTiposInmueble(), "id", "tipo");
         return View();
