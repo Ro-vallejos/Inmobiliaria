@@ -13,78 +13,58 @@ public class ContratoController : Controller
     private readonly IRepositorioPago _pagoRepo;
     private readonly IRepositorioInquilino _inquilinoRepo;
     private readonly IRepositorioInmueble _inmuebleRepo;
+    private readonly IRepositorioAuditoria _auditoriaRepo;
+
 
     public ContratoController(
         ILogger<ContratoController> logger,
         IRepositorioContrato contratoRepo,
         IRepositorioPago pagoRepo,
         IRepositorioInquilino inquilinoRepo,
-        IRepositorioInmueble inmuebleRepo)
+        IRepositorioInmueble inmuebleRepo, IRepositorioAuditoria auditoriaRepo)
     {
         _logger = logger;
         _contratoRepo = contratoRepo;
         _pagoRepo = pagoRepo;
         _inquilinoRepo = inquilinoRepo;
         _inmuebleRepo = inmuebleRepo;
+        _auditoriaRepo = auditoriaRepo;
     }
-// Dentro de ContratoController
 
-// Añadimos el nuevo parámetro 'diasVencimiento'
-public IActionResult Index(DateTime? fechaInicio, DateTime? fechaFin, int? diasVencimiento)
-{
-    IEnumerable<Contrato> listaContratos = new List<Contrato>();
-    
-    ViewBag.FechaInicio = null;
-    ViewBag.FechaFin = null;
-    ViewBag.DiasVencimiento = diasVencimiento; // Retenemos el valor seleccionado
-
-    // 1. FILTRO POR RANGO DE VIGENCIA (Lógica existente)
-    if (fechaInicio.HasValue && fechaFin.HasValue && fechaInicio <= fechaFin)
+    public IActionResult Index(DateTime? fechaInicio, DateTime? fechaFin, int? diasVencimiento)
     {
-        ViewBag.FechaInicio = fechaInicio.Value.ToString("yyyy-MM-dd");
-        ViewBag.FechaFin = fechaFin.Value.ToString("yyyy-MM-dd");
-        ViewBag.DiasVencimiento = null; // Reiniciamos el filtro de días si se usa el de rango
+        IEnumerable<Contrato> listaContratos = new List<Contrato>();
 
-        listaContratos = _contratoRepo.ObtenerContratosVigentesPorRango(fechaInicio.Value, fechaFin.Value);
-        TempData["Info"] = $"Mostrando contratos activos que se solapan entre {fechaInicio.Value:d} y {fechaFin.Value:d}.";
-    }
-    // 2. FILTRO POR DÍAS HASTA EL VENCIMIENTO (Nueva lógica)
-    else if (diasVencimiento.HasValue && diasVencimiento.Value > 0)
-    {
-        // Si se usa este filtro, reiniciamos las fechas de rango en el ViewBag
         ViewBag.FechaInicio = null;
         ViewBag.FechaFin = null;
-        
-        listaContratos = _contratoRepo.ObtenerContratosPorVencimiento(diasVencimiento.Value);
-        TempData["Info"] = $"Mostrando contratos que vencen dentro de {diasVencimiento.Value} días o menos. ⚠️";
-    }
-    // 3. CASO POR DEFECTO (Mostrar todos)
-    else
-    {
-        listaContratos = _contratoRepo.ObtenerContratos();
-        // Si se limpió el filtro de rango, aseguramos que el de días también se muestre limpio
-        ViewBag.DiasVencimiento = null; 
+        ViewBag.DiasVencimiento = diasVencimiento;
+
+        if (fechaInicio.HasValue && fechaFin.HasValue && fechaInicio <= fechaFin)
+        {
+            ViewBag.FechaInicio = fechaInicio.Value.ToString("yyyy-MM-dd");
+            ViewBag.FechaFin = fechaFin.Value.ToString("yyyy-MM-dd");
+            ViewBag.DiasVencimiento = null;
+
+            listaContratos = _contratoRepo.ObtenerContratosVigentesPorRango(fechaInicio.Value, fechaFin.Value);
+            TempData["Info"] = $"Mostrando contratos activos que se solapan entre {fechaInicio.Value:d} y {fechaFin.Value:d}.";
+        }
+        else if (diasVencimiento.HasValue && diasVencimiento.Value > 0)
+        {
+            ViewBag.FechaInicio = null;
+            ViewBag.FechaFin = null;
+
+            listaContratos = _contratoRepo.ObtenerContratosPorVencimiento(diasVencimiento.Value);
+            TempData["Info"] = $"Mostrando contratos que vencen dentro de {diasVencimiento.Value} días o menos. ⚠️";
+        }
+        else
+        {
+            listaContratos = _contratoRepo.ObtenerContratos();
+            ViewBag.DiasVencimiento = null;
+        }
+
+        return View(listaContratos);
     }
 
-    return View(listaContratos);
-}
-    // public IActionResult Index(string tipoFiltro, DateTime? fechaInicio, DateTime? fechaFin,int? diasVencimiento)
-    // {
-    //     IEnumerable<Contrato> listaContratos = new List<Contrato>();
-
-    //     if (fechaInicio.HasValue && fechaFin.HasValue && fechaInicio <= fechaFin)
-    //     {
-    //         ViewBag.FechaInicio = fechaInicio.Value.ToString("yyyy-MM-dd");
-    //         ViewBag.FechaFin = fechaFin.Value.ToString("yyyy-MM-dd");
-    //         listaContratos = _contratoRepo.ObtenerContratosVigentesPorRango(fechaInicio.Value, fechaFin.Value);
-    //         TempData["Info"] = $"Mostrando contratos activos que se solapan entre {fechaInicio.Value:d} y {fechaFin.Value:d}.";
-    //     }
-    //     else
-    //     {
-    //         listaContratos = _contratoRepo.ObtenerContratos();
-    //     }
-    //     return View(listaContratos);
-    // }
 
     [HttpGet]
     public IActionResult Agregar()
@@ -172,6 +152,12 @@ public IActionResult Index(DateTime? fechaInicio, DateTime? fechaFin, int? diasV
             try
             {
                 _contratoRepo.AgregarContrato(contrato);
+                _auditoriaRepo.InsertarRegistroAuditoria(
+                  "Contrato",
+                  contrato.id,
+                  AccionAuditoria.Crear,
+                  User.Identity?.Name ?? "Anónimo"
+              );
                 if (contrato.id_inmueble.HasValue && contrato.id_inmueble.Value > 0)
                 {
                     _inmuebleRepo.MarcarComoAlquilado(contrato.id_inmueble.Value);
@@ -349,16 +335,45 @@ public IActionResult Index(DateTime? fechaInicio, DateTime? fechaFin, int? diasV
         {
             return Json(new { success = false, fechaTerminacionError = "La fecha debe ser POSTERIOR a la fecha de inicio del contrato." });
         }
+        DateTime? fechaUltimoPago = _pagoRepo.ObtenerFechaUltimoPagoRealizado(idContrato);
 
-        //  Posterior al Último Pago
-        // if (fechaUltimoPago.HasValue && fecha.Date < fechaUltimoPago.Value.Date)
-        // {
-        //     return Json(new { success = false, multa = $"La fecha de terminación no puede ser anterior al último pago registrado ({fechaUltimoPago.Value.ToShortDateString()})." });
-        // }
+        if (fechaUltimoPago.HasValue && fecha.Date <= fechaUltimoPago.Value.Date)
+        {
 
+            return Json(new
+            {
+                success = false,
+                fechaTerminacionError = $"La fecha de terminación debe ser POSTERIOR al último pago registrado ({fechaUltimoPago.Value.ToShortDateString()})."
+            });
+        }
+        var pagosPendientes = _pagoRepo.ObtenerPagosPendientes(idContrato);
 
-        decimal multaCalculada = CalcularMulta(contrato, fecha);
-        return Json(new { success = true, multaTexto = multaCalculada.ToString("C", new System.Globalization.CultureInfo("es-AR")), multaValor = multaCalculada });
+        int mesesAdeudados = pagosPendientes.Count;
+        if (contrato.monto_mensual.HasValue)
+        {
+            decimal montoMensual = contrato.monto_mensual.Value;
+            decimal totalAdeudado = montoMensual * mesesAdeudados;
+            decimal multaCalculada = CalcularMulta(contrato, fecha);
+            return Json(new
+            {
+                success = true,
+                multaTexto = multaCalculada.ToString("C", new System.Globalization.CultureInfo("es-AR")),
+                multaValor = multaCalculada,
+                mesesAdeudados = mesesAdeudados,
+                totalAdeudadoTexto = totalAdeudado.ToString("C", new System.Globalization.CultureInfo("es-AR")),
+                totalAdeudadoValor = totalAdeudado
+            });
+        }
+        else
+        {
+            return Json(new
+        {
+            success = false,
+            fechaTerminacionError = "El contrato no tiene un monto mensual definido para calcular la multa."
+        });
+        }
+
+        
     }
 
 

@@ -9,6 +9,7 @@
         : "...";
 }
 
+
 <div class="card">
     <div class="card-header">
         <h4>Cancelar Contrato</h4>
@@ -23,6 +24,13 @@
             @if (TempData["Error"] != null)
             {
                 <div class="alert alert-danger">@TempData["Error"]</div>
+            }
+            @if (TempData["fechaTerminacionError"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["fechaTerminacionError"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
             }
         </div>
         <p>Fecha de inicio del contrato: <strong>@(Model.fecha_inicio?.ToString("dd/MM/yyyy") ?? "No disponible")</strong></p>
