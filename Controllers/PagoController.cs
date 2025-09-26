@@ -48,7 +48,7 @@ public class PagoController : Controller
         _pagoRepo.ActualizarPago(pago);
 
         _auditoriaRepo.InsertarRegistroAuditoria(
-            "Pago",
+            TipoAuditoria.Pago,
             pago.id,
             AccionAuditoria.Recibir, 
             User.Identity.Name ?? "Anónimo"
@@ -80,7 +80,7 @@ public class PagoController : Controller
         _pagoRepo.ActualizarPago(pago);
 
         _auditoriaRepo.InsertarRegistroAuditoria(
-            "Pago",
+            TipoAuditoria.Pago,
             pago.id,
             AccionAuditoria.Anular, 
             User.Identity.Name ?? "Anónimo"

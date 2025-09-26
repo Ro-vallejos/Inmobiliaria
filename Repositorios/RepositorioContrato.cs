@@ -105,7 +105,36 @@ public List<Contrato> ObtenerContratos()
         return contrato;
     }
 
-    public void AgregarContrato(Contrato contrato)
+    // public void AgregarContrato(Contrato contrato)
+    // {
+    //     using (MySqlConnection connection = new MySqlConnection(connectionString))
+    //     {
+    //         var sql = @"
+    //         INSERT INTO contrato 
+    //             (id_inquilino, id_inmueble, fecha_inicio, fecha_fin, monto_mensual, multa, fecha_terminacion_anticipada, estado)
+    //         VALUES 
+    //             (@id_inquilino, @id_inmueble, @fecha_inicio, @fecha_fin, @monto_mensual, @multa, @fecha_terminacion_anticipada, @estado)";
+
+    //         using (MySqlCommand command = new MySqlCommand(sql, connection))
+    //         {
+    //             connection.Open();
+
+    //             command.Parameters.AddWithValue("@id_inquilino", contrato.id_inquilino);
+    //             command.Parameters.AddWithValue("@id_inmueble", contrato.id_inmueble);
+    //             command.Parameters.AddWithValue("@fecha_inicio", contrato.fecha_inicio);
+    //             command.Parameters.AddWithValue("@fecha_fin", contrato.fecha_fin);
+    //             command.Parameters.AddWithValue("@monto_mensual", contrato.monto_mensual);
+    //             command.Parameters.AddWithValue("@multa", DBNull.Value);
+    //             command.Parameters.AddWithValue("@fecha_terminacion_anticipada", DBNull.Value);
+    //             command.Parameters.AddWithValue("@estado", contrato.estado);
+
+    //             command.ExecuteNonQuery();
+    //             connection.Close();
+    //         }
+    //     }
+    // }
+
+    public int AgregarContrato(Contrato contrato)
     {
         using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
@@ -113,7 +142,8 @@ public List<Contrato> ObtenerContratos()
             INSERT INTO contrato 
                 (id_inquilino, id_inmueble, fecha_inicio, fecha_fin, monto_mensual, multa, fecha_terminacion_anticipada, estado)
             VALUES 
-                (@id_inquilino, @id_inmueble, @fecha_inicio, @fecha_fin, @monto_mensual, @multa, @fecha_terminacion_anticipada, @estado)";
+                (@id_inquilino, @id_inmueble, @fecha_inicio, @fecha_fin, @monto_mensual, @multa, @fecha_terminacion_anticipada, @estado);
+            SELECT LAST_INSERT_ID();";
 
             using (MySqlCommand command = new MySqlCommand(sql, connection))
             {
@@ -128,11 +158,14 @@ public List<Contrato> ObtenerContratos()
                 command.Parameters.AddWithValue("@fecha_terminacion_anticipada", DBNull.Value);
                 command.Parameters.AddWithValue("@estado", contrato.estado);
 
-                command.ExecuteNonQuery();
-                connection.Close();
+                var idGenerado = Convert.ToInt32(command.ExecuteScalar());
+
+                contrato.id = idGenerado; 
+                return idGenerado; 
             }
         }
     }
+
 
     public void ActualizarContrato(Contrato contrato)
     {

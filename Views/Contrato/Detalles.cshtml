@@ -1,67 +1,42 @@
-@* @model _net_integrador.Models.Contrato
-
+@model _net_integrador.Models.Contrato
+@using _net_integrador.Models
 @{
-    ViewData["Title"] = "Detalles del Contrato";
-    var pagos = ViewBag.Pagos as List<_net_integrador.Models.Pago>;
+    ViewData["Title"] = "Auditoría del Contrato";
+    var auditorias = ViewBag.Auditorias as List<Auditoria>;
 }
 
-<h2>Detalles del Contrato</h2>
-
-<div>
-    <h4>Información del Contrato</h4>
+<div class="container mt-4">
+    <h2>Auditoría del Contrato N° @Model.id</h2>
     <hr />
-    <dl class="row">
-        <dt class="col-sm-2">Código:</dt>
-        <dd class="col-sm-10">@Model.id</dd>
-        <dt class="col-sm-2">Inquilino:</dt>
-        <dd class="col-sm-10">@Model.Inquilino?.nombre @Model.Inquilino?.apellido</dd>
-        <dt class="col-sm-2">Inmueble:</dt>
-        <dd class="col-sm-10">@Model.Inmueble?.direccion</dd>
-        <dt class="col-sm-2">Monto:</dt>
-        <dd class="col-sm-10">@Model.monto_mensual?.ToString("C")</dd>
-        <dt class="col-sm-2">Fecha Inicio:</dt>
-        <dd class="col-sm-10">@Model.fecha_inicio?.ToString("dd/MM/yyyy")</dd>
-        
-        <dt class="col-sm-2">Fecha Fin:</dt>
-        <dd class="col-sm-10">@Model..fecha_fin?.ToString("dd/MM/yyyy")</dd>
-        <dt class="col-sm-2">Estado:</dt>
-        <dd class="col-sm-10">@(Model.estado == 1 ? "Vigente" : "Terminado")</dd>
-    </dl>
+
+    @if (auditorias == null || !auditorias.Any())
+    {
+        <div class="alert alert-info">
+            No se encontraron registros de auditoría para este contrato.
+        </div>
+    }
+    else
+    {
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Fecha y Hora</th>
+                    <th>Acción</th>
+                    <th>Usuario</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var audit in auditorias)
+                {
+                    <tr>
+                        <td>@audit.fecha_hora.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@audit.accion</td>
+                        <td>@audit.usuario</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <a asp-action="Index" class="btn btn-secondary">Volver</a>
 </div>
-
-<hr />
-
-<h4>Historial de Pagos</h4>
-<p>
-    <a class="btn btn-success" asp-action="Agregar" asp-controller="Pago" asp-route-contratoId="@Model.id">Registrar Pago</a>
-</p>
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Fecha Pago</th>
-            <th>Importe</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var pago in pagos)
-        {
-            <tr>
-                <td>@pago.fecha_pago.ToShortDateString()</td>
-                <td>@pago.importe.ToString("C")</td>
-                <td>@(pago.estado == 1 ? "Pagado" : "Anulado")</td>
-                <td>
-                    @if (pago.estado == 1)
-                    {
-                        @Html.ActionLink("Anular", "Anular", "Pago", new { id = pago.id }, new { @class = "btn btn-danger btn-sm", onclick = "return confirm('¿Seguro que querés anular este pago?');" })
-                    }
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
-
-<div>
-    @Html.ActionLink("Volver a la Lista", "Index", new { @class = "btn btn-secondary" })
-</div> *@

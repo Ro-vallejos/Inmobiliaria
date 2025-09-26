@@ -104,8 +104,18 @@ public class ContratoController : Controller
     public IActionResult Detalles(int id)
     {
         var contratoSeleccionado = _contratoRepo.ObtenerContratoId(id);
-        var pagosDelContrato = _pagoRepo.ObtenerPagosPorContrato(id);
-        ViewBag.Pagos = pagosDelContrato;
+        if (contratoSeleccionado == null)
+        {
+            return NotFound();
+        }
+
+        var auditorias = _auditoriaRepo.ObtenerAuditoriasPorTipo(TipoAuditoria.Contrato)
+            .Where(a => a.id_registro_afectado == id)
+            .OrderByDescending(a => a.fecha_hora)
+            .ToList();
+
+        ViewBag.Auditorias = auditorias;
+
         return View(contratoSeleccionado);
     }
 
@@ -175,10 +185,10 @@ public class ContratoController : Controller
             contrato.estado = 1;
             try
             {
-                _contratoRepo.AgregarContrato(contrato);
+                var idContrato = _contratoRepo.AgregarContrato(contrato);
                 _auditoriaRepo.InsertarRegistroAuditoria(
-                  "Contrato",
-                  contrato.id,
+                TipoAuditoria.Contrato,
+                  idContrato,
                   AccionAuditoria.Crear,
                   User.Identity?.Name ?? "Anónimo"
               );
