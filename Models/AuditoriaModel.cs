@@ -21,6 +21,6 @@ namespace _net_integrador.Models
         Anular,
         Crear,
         Actualizar,
-        Eliminar
+        Finalizar
     }
 }
