@@ -474,7 +474,26 @@ public class ContratoController : Controller
         {
             contrato.fecha_fin = contrato.fecha_inicio.Value.AddMonths(contrato.DuracionEnMeses);
         }
+ if (!contrato.fecha_inicio.HasValue || !contrato.fecha_fin.HasValue)
+    {
+        ModelState.AddModelError("", "Debe definir la fecha de inicio y la duración.");
+    } 
+    else if (contrato.id_inmueble.HasValue && contrato.id_inmueble.Value > 0)
+    {
+        var inmueblesDisponibles = _inmuebleRepo.BuscarDisponiblePorFecha(
+            contrato.fecha_inicio.Value, 
+            contrato.fecha_fin.Value
+        );
 
+        bool inmuebleOcupado = inmueblesDisponibles
+                                   .Any(i => i.id == contrato.id_inmueble.Value) == false;
+
+        if (inmuebleOcupado)
+        {
+            ModelState.AddModelError("", "El inmueble seleccionado NO está disponible para las fechas de la renovación.");
+            ModelState.AddModelError("fecha_inicio", "El inmueble no está disponible en la fecha ingresada");
+        }
+    }
         if (contrato.id_inmueble == 0 || !contrato.id_inmueble.HasValue)
             ModelState.AddModelError("id_inmueble", "El inmueble no está definido.");
 
