@@ -167,9 +167,8 @@ public List<Contrato> ObtenerContratos()
     }
 
 
-    public void ActualizarContrato(Contrato contrato)
+    public int ActualizarContrato(Contrato contrato)
     {
-
         using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
             var sql = @"
@@ -201,9 +200,12 @@ public List<Contrato> ObtenerContratos()
 
                 command.ExecuteNonQuery();
                 connection.Close();
+
+                return contrato.id;
             }
         }
     }
+
 
     public List<Contrato> ObtenerContratoPorInmueble(int idInmueble, int idContrato)
     {
