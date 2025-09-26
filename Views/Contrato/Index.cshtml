@@ -59,7 +59,7 @@
                     {
                         @Html.ActionLink("Cancelar", "Cancelar", new { id = c.id }, new { @class = "btn btn-warning btn-sm" })
                     }
-                    @Html.ActionLink("Pagos", "Pagos", new { id = c.id }, new { @class = "btn btn-danger btn-sm" })
+                    @Html.ActionLink("Pagos", "Index", "Pago", new { contratoId = c.id }, new { @class = "btn btn-danger btn-sm" })
 
                 </td>
             </tr>
