@@ -93,13 +93,13 @@
             <div id="opcionesPago" style="display: @(contratoCanceladoYGuardado ? "block" : "none");">
                 <h5 class="mt-4">Opciones de Pago:</h5>
 
-                <a id="linkPagar" 
-                   asp-controller="Pagos" 
-                   asp-action="Detalles" 
-                   asp-route-id="@Model.id" 
-                   class="btn btn-sm btn-success">
+              <a id="linkPagar" 
+                asp-controller="Pago" 
+                asp-action="Index" 
+                asp-route-contratoId="@Model.id" 
+                class="btn btn-sm btn-success">
                     Pagar Multa Ahora
-                </a>
+              </a>
 
                 <a href="@Url.Action("Index")" class="btn btn-secondary">
                     Volver (Pagar después)

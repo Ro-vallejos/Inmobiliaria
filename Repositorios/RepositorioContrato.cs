@@ -213,7 +213,7 @@ public List<Contrato> ObtenerContratos()
 
         using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
-            var query = @"SELECT *FROM contrato WHERE id_inmueble = @idInmueble AND id != @idContrato;";
+            var query = @"SELECT *FROM contrato WHERE id_inmueble = @idInmueble AND id != @idContrato AND estado = 1";
 
             using (MySqlCommand command = new MySqlCommand(query, connection))
             {

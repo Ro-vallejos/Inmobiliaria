@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 
 
 namespace _net_integrador.Controllers;
+
 [Authorize]
 public class ContratoController : Controller
 {
@@ -130,27 +131,43 @@ public class ContratoController : Controller
 
         return View(contratoSeleccionado);
     }
-
-    [HttpGet]
-    public IActionResult Editar(int id)
+[HttpGet]
+public IActionResult Editar(int id)
+{
+    var contrato = _contratoRepo.ObtenerContratoId(id);
+    if (contrato == null)
     {
-        var contrato = _contratoRepo.ObtenerContratoId(id);
-        if (contrato == null)
-        {
-            return NotFound();
-        }
-
-        if (contrato.id_inquilino.HasValue)
-        {
-            contrato.Inquilino = _inquilinoRepo.ObtenerInquilinoId(contrato.id_inquilino.Value);
-        }
-        if (contrato.id_inmueble.HasValue)
-        {
-            contrato.Inmueble = _inmuebleRepo.ObtenerInmuebleId(contrato.id_inmueble.Value);
-        }
-
-        return View(contrato);
+        return NotFound();
     }
+
+    if (contrato.id_inquilino.HasValue)
+    {
+        contrato.Inquilino = _inquilinoRepo.ObtenerInquilinoId(contrato.id_inquilino.Value);
+    }
+    if (contrato.id_inmueble.HasValue)
+    {
+        contrato.Inmueble = _inmuebleRepo.ObtenerInmuebleId(contrato.id_inmueble.Value);
+    }
+
+    // 💡 Lógica Clave: Calcular DuracionEnMeses para precargar en el formulario
+    if (contrato.fecha_inicio.HasValue && contrato.fecha_fin.HasValue)
+    {
+        int meses = ((contrato.fecha_fin.Value.Year - contrato.fecha_inicio.Value.Year) * 12) +
+                    contrato.fecha_fin.Value.Month - contrato.fecha_inicio.Value.Month;
+        
+        // Ajuste simple: si termina el mismo día del mes, es la duración exacta.
+        // Si no, podemos redondear o usar la duración original que se guardó.
+        // Asumiendo que la duración guardada es la que importa:
+        contrato.DuracionEnMeses = meses;
+        
+        // Si no tienes el campo en la DB y solo existe para el formulario, este es el cálculo.
+        // Podrías necesitar un método para obtener la duración original si se guardó en meses.
+    } else {
+         contrato.DuracionEnMeses = 1; // Default
+    }
+
+    return View(contrato);
+}
 
     [HttpPost]
     public IActionResult Agregar(Contrato contrato, string actionType)
@@ -243,50 +260,69 @@ public class ContratoController : Controller
         return View(contrato);
     }
 
-    [HttpPost]
-    public IActionResult Editar(Contrato contratoEditado)
+   [HttpPost]
+public IActionResult Editar(Contrato contratoEditado)
+{
+    // 💡 Lógica Clave: Recalcular fecha_fin en base a DuracionEnMeses
+    if (contratoEditado.DuracionEnMeses <= 0)
     {
-        if (ModelState.IsValid)
-        {
-            if (contratoEditado.id_inmueble.HasValue)
-            {
-                var contratosExistentes = _contratoRepo.ObtenerContratoPorInmueble(contratoEditado.id_inmueble.Value, contratoEditado.id);
-                bool haySolapamiento = contratosExistentes.Any(c => contratoEditado.fecha_inicio <= c.fecha_fin && contratoEditado.fecha_fin >= c.fecha_inicio);
+        ModelState.AddModelError("DuracionEnMeses", "La duración en meses debe ser mayor a cero.");
+    }
+    else if (contratoEditado.fecha_inicio.HasValue)
+    {
+        // 1. Recalcular la fecha de fin
+        contratoEditado.fecha_fin = contratoEditado.fecha_inicio.Value.AddMonths(contratoEditado.DuracionEnMeses);
+    }
+    // Fin de la Lógica Clave de cálculo
+    
+    // Si la fecha de inicio no tiene valor, también es un error de modelo.
+    if (!contratoEditado.fecha_inicio.HasValue)
+    {
+         ModelState.AddModelError("fecha_inicio", "La fecha de inicio es requerida.");
+    }
+    
 
-                if (haySolapamiento)
-                {
-                    ModelState.AddModelError("fecha_fin", "La fecha de finalización se solapa con otro contrato del mismo inmueble.");
-                    if (contratoEditado.id_inquilino.HasValue)
-                    {
-                        contratoEditado.Inquilino = _inquilinoRepo.ObtenerInquilinoId(contratoEditado.id_inquilino.Value);
-                    }
-
-                    if (contratoEditado.id_inmueble.HasValue)
-                    {
-                        contratoEditado.Inmueble = _inmuebleRepo.ObtenerInmuebleId(contratoEditado.id_inmueble.Value);
-                    }
-
-                    return View(contratoEditado);
-                }
-            }
-            _contratoRepo.ActualizarContrato(contratoEditado);
-            TempData["Exito"] = "Contrato actualizado con éxito.";
-            return RedirectToAction("Index");
-        }
-
-        if (contratoEditado.id_inquilino.HasValue)
-        {
-            contratoEditado.Inquilino = _inquilinoRepo.ObtenerInquilinoId(contratoEditado.id_inquilino.Value);
-        }
-
+    if (ModelState.IsValid)
+    {
         if (contratoEditado.id_inmueble.HasValue)
         {
-            contratoEditado.Inmueble = _inmuebleRepo.ObtenerInmuebleId(contratoEditado.id_inmueble.Value);
-        }
+            // La validación de solapamiento ahora usa la nueva fecha_fin calculada
+            var contratosExistentes = _contratoRepo.ObtenerContratoPorInmueble(contratoEditado.id_inmueble.Value, contratoEditado.id);
+            // ... (el resto de tu lógica de solapamiento sigue igual, usando contratoEditado.fecha_fin) ...
+            
+            bool haySolapamiento = contratosExistentes.Any(c => contratoEditado.fecha_inicio <= c.fecha_fin && contratoEditado.fecha_fin >= c.fecha_inicio);
 
-        return View(contratoEditado);
+            if (haySolapamiento)
+            {
+                ModelState.AddModelError("fecha_fin", "La nueva fecha de finalización se solapa con otro contrato del mismo inmueble.");
+                // ... (Recargar Inquilino e Inmueble para el retorno de la vista) ...
+                // ... (Es importante recargar el modelo si falla) ...
+                return RecargarVistaEditar(contratoEditado);
+            }
+        }
+        
+        _contratoRepo.ActualizarContrato(contratoEditado);
+        TempData["Exito"] = "Contrato actualizado con éxito.";
+        return RedirectToAction("Index");
     }
 
+    // Recargar Inquilino e Inmueble para el retorno de la vista si ModelState es inválido
+    return RecargarVistaEditar(contratoEditado);
+}
+
+// 💡 Función auxiliar para evitar código repetitivo al retornar la vista con errores
+private IActionResult RecargarVistaEditar(Contrato contrato)
+{
+    if (contrato.id_inquilino.HasValue)
+    {
+        contrato.Inquilino = _inquilinoRepo.ObtenerInquilinoId(contrato.id_inquilino.Value);
+    }
+    if (contrato.id_inmueble.HasValue)
+    {
+        contrato.Inmueble = _inmuebleRepo.ObtenerInmuebleId(contrato.id_inmueble.Value);
+    }
+    return View(contrato);
+}
     [HttpPost]
     public IActionResult Cancelar(int idContrato, DateTime fechaTerminacion)
     {
@@ -484,26 +520,26 @@ public class ContratoController : Controller
         {
             contrato.fecha_fin = contrato.fecha_inicio.Value.AddMonths(contrato.DuracionEnMeses);
         }
- if (!contrato.fecha_inicio.HasValue || !contrato.fecha_fin.HasValue)
-    {
-        ModelState.AddModelError("", "Debe definir la fecha de inicio y la duración.");
-    } 
-    else if (contrato.id_inmueble.HasValue && contrato.id_inmueble.Value > 0)
-    {
-        var inmueblesDisponibles = _inmuebleRepo.BuscarDisponiblePorFecha(
-            contrato.fecha_inicio.Value, 
-            contrato.fecha_fin.Value
-        );
-
-        bool inmuebleOcupado = inmueblesDisponibles
-                                   .Any(i => i.id == contrato.id_inmueble.Value) == false;
-
-        if (inmuebleOcupado)
+        if (!contrato.fecha_inicio.HasValue || !contrato.fecha_fin.HasValue)
         {
-            ModelState.AddModelError("", "El inmueble seleccionado NO está disponible para las fechas de la renovación.");
-            ModelState.AddModelError("fecha_inicio", "El inmueble no está disponible en la fecha ingresada");
+            ModelState.AddModelError("", "Debe definir la fecha de inicio y la duración.");
         }
-    }
+        else if (contrato.id_inmueble.HasValue && contrato.id_inmueble.Value > 0)
+        {
+            var inmueblesDisponibles = _inmuebleRepo.BuscarDisponiblePorFecha(
+                contrato.fecha_inicio.Value,
+                contrato.fecha_fin.Value
+            );
+
+            bool inmuebleOcupado = inmueblesDisponibles
+            .Any(i => i.id == contrato.id_inmueble.Value) == false;
+
+            if (inmuebleOcupado)
+            {
+                ModelState.AddModelError("", "El inmueble seleccionado NO está disponible para las fechas de la renovación.");
+                ModelState.AddModelError("fecha_inicio", "El inmueble no está disponible en la fecha ingresada");
+            }
+        }
         if (contrato.id_inmueble == 0 || !contrato.id_inmueble.HasValue)
             ModelState.AddModelError("id_inmueble", "El inmueble no está definido.");
 
@@ -511,7 +547,7 @@ public class ContratoController : Controller
             ModelState.AddModelError("monto_mensual", "El monto mensual no está definido.");
         if (ModelState.IsValid)
         {
-            contrato.estado = 1; 
+            contrato.estado = 1;
             try
             {
                 var idContrato = _contratoRepo.AgregarContrato(contrato);
