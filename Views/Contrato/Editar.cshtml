@@ -54,7 +54,7 @@
                     <tr>
                         <td>@Model.Inmueble?.direccion.ToString()</td>
                         <td>@Model.Inmueble?.ambientes.ToString()</td>
-                        <td>@Model.Inmueble?.precio.ToString("C", new System.Globalization.CultureInfo("es-AR"))</td>
+                        <td>@Model.Inmueble?.precio?.ToString("C", new System.Globalization.CultureInfo("es-AR"))</td>
                     </tr>
                     </div>
                 </table>

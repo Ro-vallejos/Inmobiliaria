@@ -13,16 +13,14 @@ namespace _net_integrador.Models
         [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un propietario")]
 
         public int? id_propietario { get; set; }
-        //public Propietario Propietario { get; set; } = new Propietario();
         [Required(ErrorMessage = "Este campo es obligatorio")]
 
         public string direccion { get; set; } = string.Empty;
 
-        //public string uso { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Este campo es obligatorio")]
 
-        public UsoInmueble uso { get; set; }
+        public UsoInmueble? uso { get; set; }
         public TipoInmueble? tipoInmueble { get; set; }
         [Required(ErrorMessage = "Este campo es obligatorio")]
         [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un tipo de inmueble")]
@@ -41,7 +39,7 @@ namespace _net_integrador.Models
 
         public string eje_y { get; set; } = string.Empty;
         [Required(ErrorMessage = "Este campo es obligatorio")]
-        public decimal precio { get; set; }
+        public decimal? precio { get; set; }
         public Estado estado { get; set; }
 
 

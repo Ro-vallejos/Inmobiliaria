@@ -51,7 +51,7 @@
                 <td>@i.direccion</td>
                 <td>@i.uso</td>
                 <td>@i.tipoInmueble?.tipo</td>
-                <td>@i.precio.ToString("C", new System.Globalization.CultureInfo("es-AR"))</td>
+                <td>@i.precio?.ToString("C", new System.Globalization.CultureInfo("es-AR"))</td>
                 <td>@i.estado</td>
                 <td>
                     @Html.ActionLink("Editar", "Editar", new { id = i.id }, new { @class = "btn btn-primary btn-sm" })
