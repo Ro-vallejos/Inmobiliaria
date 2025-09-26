@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using _net_integrador.Models;
 using _net_integrador.Repositorios;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Authorization;
+
 
 namespace _net_integrador.Controllers;
-
+[Authorize]
 public class ContratoController : Controller
 {
     private readonly ILogger<ContratoController> _logger;

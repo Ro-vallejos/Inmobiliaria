@@ -3,9 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using _net_integrador.Models;
 using _net_integrador.Repositorios;
 using Microsoft.AspNetCore.Http; 
+using Microsoft.AspNetCore.Authorization;
 
 namespace _net_integrador.Controllers;
-
+[Authorize]
 public class PagoController : Controller
 {
     private readonly ILogger<PagoController> _logger;

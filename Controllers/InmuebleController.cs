@@ -5,9 +5,11 @@ using _net_integrador.Repositorios;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Linq.Expressions;
 using Org.BouncyCastle.Asn1.Iana;
+using Microsoft.AspNetCore.Authorization;
+
 
 namespace _net_integrador.Controllers;
-
+[Authorize]
 public class InmuebleController : Controller
 {
     private readonly ILogger<InmuebleController> _logger;

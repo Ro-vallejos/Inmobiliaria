@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using _net_integrador.Models;
 using _net_integrador.Repositorios;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Authorization;
 
 namespace _net_integrador.Controllers
 {
+    [Authorize]
     public class PropietarioController : Controller
     {
         private readonly ILogger<PropietarioController> _logger;
@@ -42,7 +44,7 @@ namespace _net_integrador.Controllers
 
         public IActionResult Eliminar(int id)
         {
-           bool eliminacionExitosa = _repositorio.EliminarPropietario(id);
+            bool eliminacionExitosa = _repositorio.EliminarPropietario(id);
 
             if (eliminacionExitosa)
             {

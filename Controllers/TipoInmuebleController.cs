@@ -2,9 +2,11 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using _net_integrador.Models;
 using _net_integrador.Repositorios;
+using Microsoft.AspNetCore.Authorization;
 
 namespace _net_integrador.Controllers;
 
+[Authorize]
 public class TipoInmuebleController : Controller
 {
     private readonly ILogger<TipoInmuebleController> _logger;
@@ -21,13 +23,13 @@ public class TipoInmuebleController : Controller
         var listaTiposInmueble = _tipoInmuebleRepo.ObtenerTiposInmueble();
         return View(listaTiposInmueble);
     }
-    
+
     [HttpGet]
     public IActionResult Agregar()
     {
         return View();
     }
-    
+
     [HttpGet]
     public IActionResult Editar(int id)
     {

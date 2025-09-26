@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace _net_integrador.Controllers;
 
+[Authorize]
 public class UsuarioController : Controller
 {
     private readonly ILogger<UsuarioController> _logger;
@@ -34,7 +35,7 @@ public class UsuarioController : Controller
     {
         return View();
     }
-    
+
     [Authorize(Policy = "Administrador")]
     [HttpGet]
     public IActionResult Editar(int id)
@@ -67,7 +68,7 @@ public class UsuarioController : Controller
         _usuarioRepo.EliminarUsuario(id);
         TempData["Exito"] = "Usuario desactivado con éxito";
         return RedirectToAction("Index");
-}
+    }
 
 
     [Authorize(Policy = "Administrador")]
@@ -226,7 +227,7 @@ public class UsuarioController : Controller
                 string nombreCompleto = $"{usuarioEditado.nombre} {usuarioEditado.apellido}";
                 usuarioEditado.avatar = $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(nombreCompleto)}&background=343a40&color=fff&rounded=true&size=128";
             }
-            
+
             _usuarioRepo.ActualizarUsuario(usuarioEditado);
             TempData["Exito"] = "Tu perfil se ha actualizado correctamente.";
             return RedirectToAction("Index", "Home");
