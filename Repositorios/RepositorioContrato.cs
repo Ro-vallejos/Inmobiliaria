@@ -319,33 +319,54 @@ public List<Contrato> ObtenerContratosPorVencimiento(int diasHastaVencimiento)
     List<Contrato> contratos = new List<Contrato>();
     using (MySqlConnection connection = new MySqlConnection(connectionString))
     {
-        var query = @"
+        string query = @"
             SELECT 
-                c.id, c.id_inquilino, c.id_inmueble, c.fecha_inicio, c.fecha_fin, c.monto_mensual, c.estado AS estadoContrato, c.multa, c.fecha_terminacion_anticipada,
-                i.id AS idInquilino, i.nombre AS nombreInquilino, i.apellido AS apellidoInquilino, i.dni AS dniInquilino, 
-                i.email AS emailInquilino, i.telefono AS telefonoInquilino, i.estado AS estadoInquilino,
+                c.id, c.id_inquilino, c.id_inmueble, c.fecha_inicio, c.fecha_fin, c.monto_mensual, 
+                c.estado AS estadoContrato, c.multa, c.fecha_terminacion_anticipada,
+                i.id AS idInquilino, i.nombre AS nombreInquilino, i.apellido AS apellidoInquilino, 
+                i.dni AS dniInquilino, i.email AS emailInquilino, i.telefono AS telefonoInquilino, 
+                i.estado AS estadoInquilino,
                 inm.id AS idInmueble, inm.direccion
             FROM contrato c
             JOIN inquilino i ON c.id_inquilino = i.id
             JOIN inmueble inm ON c.id_inmueble = inm.id
             WHERE c.estado = 1 
-            AND DATEDIFF(c.fecha_fin, CURDATE()) BETWEEN 0 AND @dias"; 
-            
+              AND DATEDIFF(c.fecha_fin, CURDATE()) >= @minDias
+              AND DATEDIFF(c.fecha_fin, CURDATE()) <= @maxDias"; 
+
         using (MySqlCommand command = new MySqlCommand(query, connection))
         {
-            command.Parameters.AddWithValue("@dias", diasHastaVencimiento);
+            int minDias = 0, maxDias = 0;
+
+            if (diasHastaVencimiento == 30)
+            {
+                minDias = 0; maxDias = 30;
+            }
+            else if (diasHastaVencimiento == 60)
+            {
+                minDias = 31; maxDias = 60;
+            }
+            else if (diasHastaVencimiento == 90)
+            {
+                minDias = 61; maxDias = 90;
+            }
+
+            command.Parameters.AddWithValue("@minDias", minDias);
+            command.Parameters.AddWithValue("@maxDias", maxDias);
 
             connection.Open();
             var reader = command.ExecuteReader();
 
             while (reader.Read())
             {
-                contratos.Add(MapearContrato(reader)); 
+                contratos.Add(MapearContrato(reader));
             }
             connection.Close();
         }
     }
     return contratos;
 }
+
+
 
 }
