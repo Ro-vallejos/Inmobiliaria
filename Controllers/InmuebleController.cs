@@ -74,7 +74,7 @@ public class InmuebleController : Controller
     {
         var propietarios = _repositorioPropietario.ObtenerPropietariosActivos();
         var tipos = _repositorioTipoInmueble.ObtenerTiposInmueble()
-            .Where(t => t.estado == 1) // 🔥 solo tipos activos
+            .Where(t => t.estado == 1)
             .ToList();
 
         ViewBag.Propietarios = new SelectList(propietarios, "id", "NombreCompleto");
@@ -123,7 +123,7 @@ public class InmuebleController : Controller
         }
 
         var tipos = _repositorioTipoInmueble.ObtenerTiposInmueble()
-            .Where(t => t.estado == 1) // 🔥 solo tipos activos también acá
+            .Where(t => t.estado == 1)
             .ToList();
 
         var propietarios = _repositorioPropietario.ObtenerPropietarios()
