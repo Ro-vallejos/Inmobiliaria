@@ -1,22 +1,130 @@
-@* @model _net_integrador.Models.Pago
+@model _net_integrador.Models.Pago
 
 @{
-    ViewData["Title"] = "Nuevo Pago";
-    var contratoId = ViewBag.ContratoId;
+    ViewData["Title"] = "Registrar Pago";
+    var contrato = (_net_integrador.Models.Contrato)ViewBag.Contrato;
+    var slotsFaltantes = (List<dynamic>)ViewBag.SlotsFaltantes;
+    var montoMensual = contrato.monto_mensual ?? 0;
 }
 
-<h2>Agregar Pago</h2>
+<div class="container mt-4">
+    <a href="@Url.Action("Index", "Pago", new { contratoId = contrato.id })" class="btn btn-secondary mb-3">
+        <i class="bi bi-arrow-left"></i> Volver al Listado
+    </a>
 
-<form asp-action="Agregar" method="post">
-    @Html.HiddenFor(m => m.id_contrato, new { @value = contratoId })
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h3 class="card-title mb-0">Registrar Pago - Contrato N° @contrato.id</h3>
+        </div>
+        <div class="card-body bg-light">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Inquilino:</strong> @contrato.Inquilino?.NombreCompleto</p>
+                    <p><strong>Inmueble:</strong> @contrato.Inmueble?.direccion</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Precio del Mes:</strong> <span class="badge bg-dark fs-6">$@montoMensual.ToString("N2")</span></p>
+                    <p><strong>Vigencia:</strong> @contrato.fecha_inicio?.ToString("dd/MM/yyyy") al @contrato.fecha_fin?.ToString("dd/MM/yyyy")</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <div class="form-group">
-        @Html.LabelFor(m => m.fecha_pago)
-        @Html.TextBoxFor(m => m.fecha_pago, new { @class = "form-control", type = "date" })
-    </div>
-    <div class="form-group">
-        @Html.LabelFor(m => m.importe)
-        @Html.TextBoxFor(m => m.importe, new { @class = "form-control" })
-    </div>
-    <button type="submit" class="btn btn-primary">Guardar</button>
-</form> *@
+    @if (slotsFaltantes == null || !slotsFaltantes.Any())
+    {
+        <div class="alert alert-success text-center">
+            <i class="bi bi-check-circle-fill fs-4"></i>
+            <p class="mt-2 mb-0"><strong>¡Contrato al día!</strong> Este contrato ya no tiene meses pendientes de pago.</p>
+        </div>
+    }
+    else
+    {
+        <form asp-action="RegistrarPago" method="post" class="needs-validation">
+            <input type="hidden" name="idContrato" value="@contrato.id" />
+            <input type="hidden" id="montoMensualBase" value="@montoMensual" />
+
+            <div class="row">
+                <div class="col-md-7">
+                    <h4>1. Seleccione los meses a abonar</h4>
+                    <p class="text-muted small">Puede seleccionar más de un mes para registrar un cobro conjunto.</p>
+                    
+                    <div class="list-group shadow-sm mb-3">
+                        @foreach (var mes in slotsFaltantes)
+                        {
+                            <label class="list-group-item d-flex justify-content-between align-items-center list-group-item-action custom-slot-label">
+                                <div>
+                                    <input class="form-check-input me-3 chk-mes" type="checkbox" name="mesesSeleccionados" value="@mes.Numero" />
+                                    <strong>@mes.TextoDisplay</strong>
+                                </div>
+                                <span class="text-secondary">$@montoMensual.ToString("N2")</span>
+                            </label>
+                        }
+                    </div>
+                </div>
+
+                <div class="col-md-5">
+                    <h4>2. Datos del Comprobante</h4>
+                    
+                    <div class="card p-3 border-secondary mb-3 shadow-sm bg-white">
+                        <div class="form-group mb-3">
+                            <label class="form-label font-weight-bold">Importe Total Calculado</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="text" id="montoTotalDisplay" class="form-control bg-light fs-4 text-primary font-weight-bold" value="0.00" readonly />
+                            </div>
+                            <small class="text-muted">Se generará un registro de pago individual por cada mes tildado.</small>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="detalleEspecial" class="form-label">Detalle o Nota adicional (Opcional)</label>
+                            <textarea id="detalleEspecial" name="detalleAdicional" class="form-control" rows="2" placeholder="Ej: Abonado con transferencia bancaria..."></textarea>
+                        </div>
+
+                        <button type="submit" id="btnGuardar" class="btn btn-success btn-lg w-100" disabled>
+                            <i class="bi bi-cash-coin"></i> Confirmar y Registrar Pago
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            var $checkboxes = $('.chk-mes');
+            var $montoDisplay = $('#montoTotalDisplay');
+            var $btnGuardar = $('#btnGuardar');
+            var montoBase = parseFloat($('#montoMensualBase').val()) || 0;
+
+            function recalcularCobro() {
+                var cantidadSeleccionada = $checkboxes.filter(':checked').length;
+                var total = cantidadSeleccionada * montoBase;
+
+                $montoDisplay.val(total.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+
+                if (cantidadSeleccionada > 0) {
+                    $btnGuardar.removeAttr('disabled');
+                } else {
+                    $btnGuardar.attr('disabled', 'disabled');
+                }
+            }
+
+            $checkboxes.on('change', recalcularCobro);
+        });
+    </script>
+
+    <style>
+        .custom-slot-label {
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .custom-slot-label:hover {
+            background-color: #f0f4f8;
+        }
+        .chk-mes {
+            transform: scale(1.2);
+        }
+    </style>
+}

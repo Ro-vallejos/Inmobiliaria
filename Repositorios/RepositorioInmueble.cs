@@ -270,28 +270,27 @@ namespace _net_integrador.Repositorios
             }
             return inmuebles;
         }
-        public void MarcarComoAlquilado(int id)
-        {
-            string sql = "UPDATE inmueble SET estado=@estado WHERE id=@id";
 
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
-            {
-                MySqlCommand cmd = new MySqlCommand(sql, connection);
-                cmd.Parameters.AddWithValue("@estado", (int)Estado.Alquilado);
-                cmd.Parameters.AddWithValue("@id", id);
-                connection.Open();
-                cmd.ExecuteNonQuery();
-                connection.Close();
-            }
-
-        }
         public List<Inmueble> BuscarDisponiblePorFecha(DateTime inicio, DateTime fin)
         {
             var inmuebles = new List<Inmueble>();
 
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
-                string sql = "SELECT id, direccion, id_propietario, uso, id_tipo, ambientes, eje_x, eje_y, precio, estado FROM inmueble WHERE estado!=2 AND id NOT IN (SELECT id_inmueble FROM contrato WHERE NOT (@fin <= fecha_inicio OR @inicio >= fecha_fin) AND (fecha_terminacion_anticipada IS NULL OR fecha_terminacion_anticipada > @inicio) AND estado = 1)";
+                string sql = @"
+                SELECT 
+                    i.id, i.direccion, i.id_propietario, i.uso, i.id_tipo, i.ambientes, i.eje_x, i.eje_y, i.precio, i.estado,
+                    p.nombre AS prop_nombre, p.apellido AS prop_apellido
+                FROM inmueble i
+                INNER JOIN propietario p ON i.id_propietario = p.id
+                WHERE i.estado != 2 
+                    AND i.id NOT IN (
+                        SELECT id_inmueble 
+                        FROM contrato 
+                        WHERE NOT (@fin <= fecha_inicio OR @inicio >= fecha_fin) 
+                            AND (fecha_terminacion_anticipada IS NULL OR fecha_terminacion_anticipada > @inicio) 
+                            AND estado = 1
+                )";
 
                 using (MySqlCommand cmd = new MySqlCommand(sql, connection))
                 {
@@ -303,7 +302,7 @@ namespace _net_integrador.Repositorios
                     {
                         while (reader.Read())
                         {
-                            inmuebles.Add(new Inmueble
+                            var inmueble = (new Inmueble
                             {
                                 id = reader.GetInt32("id"),
                                 direccion = reader.GetString("direccion"),
@@ -314,8 +313,16 @@ namespace _net_integrador.Repositorios
                                 eje_x = reader.GetString("eje_x"),
                                 eje_y = reader.GetString("eje_y"),
                                 precio = reader.GetDecimal("precio"),
-                                estado = Enum.Parse<Estado>(reader.GetString("estado"))
+                                estado = Enum.Parse<Estado>(reader.GetString("estado")),
+
+                                propietario = new Propietario
+                                {
+                                    id= reader.GetInt32("id_propietario"),
+                                    nombre = reader.GetString("prop_nombre"),
+                                    apellido = reader.GetString("prop_apellido")
+                                }
                             });
+                            inmuebles.Add(inmueble);
                         }
                     }
                     connection.Close();

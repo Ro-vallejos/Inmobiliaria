@@ -17,7 +17,7 @@ public class ContratoController : Controller
     private readonly IRepositorioInquilino _inquilinoRepo;
     private readonly IRepositorioInmueble _inmuebleRepo;
     private readonly IRepositorioAuditoria _auditoriaRepo;
-    
+
 
     public ContratoController(
         ILogger<ContratoController> logger,
@@ -70,20 +70,42 @@ public class ContratoController : Controller
     }
 
     [HttpGet]
-    public IActionResult Agregar()
+    public IActionResult Agregar(int? idInmueble)
     {
         var inquilinos = _inquilinoRepo.ObtenerInquilinos()
             .Select(i => new SelectListItem { Value = i.id.ToString(), Text = i.NombreCompleto })
             .ToList();
 
         ViewBag.Inquilinos = inquilinos;
-        ViewBag.InmueblesDisponibles = null;
 
         var nuevoContrato = new Contrato
         {
             DuracionEnMeses = 1,
             fecha_inicio = DateTime.Today
         };
+
+        if (idInmueble.HasValue)
+        {
+            ViewBag.InmueblePreseleccionadoId = idInmueble.Value;
+
+            var inmuebleFijo = _inmuebleRepo.BuscarDisponiblePorFecha(DateTime.Today, DateTime.Today.AddMonths(1))
+                .FirstOrDefault(i => i.id == idInmueble.Value) ?? _inmuebleRepo.ObtenerInmuebles().FirstOrDefault(i => i.id == idInmueble.Value);
+
+            if (inmuebleFijo != null)
+            {
+                ViewBag.InmueblesDisponibles = new List<_net_integrador.Models.Inmueble> { inmuebleFijo };
+                nuevoContrato.id_inmueble = inmuebleFijo.id;
+                nuevoContrato.monto_mensual = inmuebleFijo.precio;
+            }
+            else
+            {
+                ViewBag.InmueblesDisponibles = null;
+            }
+        }
+        else
+        {
+            ViewBag.InmueblesDisponibles = null;
+        }
 
         return View(nuevoContrato);
     }
@@ -130,38 +152,40 @@ public class ContratoController : Controller
 
         return View(contratoSeleccionado);
     }
-[HttpGet]
-public IActionResult Editar(int id)
-{
-    var contrato = _contratoRepo.ObtenerContratoId(id);
-    if (contrato == null)
+    [HttpGet]
+    public IActionResult Editar(int id)
     {
-        return NotFound();
-    }
+        var contrato = _contratoRepo.ObtenerContratoId(id);
+        if (contrato == null)
+        {
+            return NotFound();
+        }
 
-    if (contrato.id_inquilino.HasValue)
-    {
-        contrato.Inquilino = _inquilinoRepo.ObtenerInquilinoId(contrato.id_inquilino.Value);
-    }
-    if (contrato.id_inmueble.HasValue)
-    {
-        contrato.Inmueble = _inmuebleRepo.ObtenerInmuebleId(contrato.id_inmueble.Value);
-    }
+        if (contrato.id_inquilino.HasValue)
+        {
+            contrato.Inquilino = _inquilinoRepo.ObtenerInquilinoId(contrato.id_inquilino.Value);
+        }
+        if (contrato.id_inmueble.HasValue)
+        {
+            contrato.Inmueble = _inmuebleRepo.ObtenerInmuebleId(contrato.id_inmueble.Value);
+        }
 
-    if (contrato.fecha_inicio.HasValue && contrato.fecha_fin.HasValue)
-    {
-        int meses = ((contrato.fecha_fin.Value.Year - contrato.fecha_inicio.Value.Year) * 12) +
-                    contrato.fecha_fin.Value.Month - contrato.fecha_inicio.Value.Month;
-        
-      
-        contrato.DuracionEnMeses = meses;
-        
-    } else {
-         contrato.DuracionEnMeses = 1; 
-    }
+        if (contrato.fecha_inicio.HasValue && contrato.fecha_fin.HasValue)
+        {
+            int meses = ((contrato.fecha_fin.Value.Year - contrato.fecha_inicio.Value.Year) * 12) +
+                        contrato.fecha_fin.Value.Month - contrato.fecha_inicio.Value.Month;
 
-    return View(contrato);
-}
+
+            contrato.DuracionEnMeses = meses;
+
+        }
+        else
+        {
+            contrato.DuracionEnMeses = 1;
+        }
+
+        return View(contrato);
+    }
 
     [HttpPost]
     public IActionResult Agregar(Contrato contrato, string actionType)
@@ -183,11 +207,7 @@ public IActionResult Editar(int id)
         {
             if (!contrato.fecha_inicio.HasValue || !contrato.fecha_fin.HasValue || contrato.fecha_inicio >= contrato.fecha_fin)
             {
-                if (!ModelState.IsValid) { }
-                else
-                {
-                    ModelState.AddModelError("", "Verifique la fecha de inicio y la duración del contrato.");
-                }
+                ModelState.AddModelError("", "Verifique la fecha de inicio y la duración del contrato.");
                 ViewBag.InmueblesDisponibles = null;
             }
             else
@@ -203,6 +223,16 @@ public IActionResult Editar(int id)
         if (!contrato.monto_mensual.HasValue)
             ModelState.AddModelError("monto_mensual", "Debe ingresar un monto mensual.");
 
+        if (ModelState.IsValid && contrato.fecha_inicio.HasValue && contrato.fecha_fin.HasValue)
+        {
+            var disponibles = _inmuebleRepo.BuscarDisponiblePorFecha(contrato.fecha_inicio.Value, contrato.fecha_fin.Value);
+
+            if (!disponibles.Any(i => i.id == contrato.id_inmueble))
+            {
+                ModelState.AddModelError("", "¡Error! El inmueble seleccionado ya cuenta con un contrato vigente o reserva para las fechas ingresadas.");
+            }
+        }
+
         if (ModelState.IsValid)
         {
             contrato.estado = 1;
@@ -210,15 +240,11 @@ public IActionResult Editar(int id)
             {
                 var idContrato = _contratoRepo.AgregarContrato(contrato);
                 _auditoriaRepo.InsertarRegistroAuditoria(
-                TipoAuditoria.Contrato,
-                  idContrato,
-                  AccionAuditoria.Crear,
-                  User.Identity?.Name ?? "Anónimo"
-              );
-                if (contrato.id_inmueble.HasValue && contrato.id_inmueble.Value > 0)
-                {
-                    _inmuebleRepo.MarcarComoAlquilado(contrato.id_inmueble.Value);
-                }
+                    TipoAuditoria.Contrato,
+                    idContrato,
+                    AccionAuditoria.Crear,
+                    User.Identity?.Name ?? "Anónimo"
+                );
                 TempData["Exito"] = "Contrato creado exitosamente.";
                 return RedirectToAction("Index");
             }
@@ -230,16 +256,30 @@ public IActionResult Editar(int id)
 
         if (contrato.fecha_inicio.HasValue && contrato.fecha_fin.HasValue && contrato.fecha_inicio < contrato.fecha_fin)
         {
-            ViewBag.InmueblesDisponibles = _inmuebleRepo.BuscarDisponiblePorFecha(contrato.fecha_inicio.Value, contrato.fecha_fin.Value);
+            var listaDisponibles = _inmuebleRepo.BuscarDisponiblePorFecha(contrato.fecha_inicio.Value, contrato.fecha_fin.Value);
+
+            if (contrato.id_inmueble > 0 && !listaDisponibles.Any(i => i.id == contrato.id_inmueble))
+            {
+                var inmuebleIntento = _inmuebleRepo.ObtenerInmuebles().FirstOrDefault(i => i.id == contrato.id_inmueble);
+                if (inmuebleIntento != null)
+                {
+                    listaDisponibles.Add(inmuebleIntento);
+                }
+            }
+            ViewBag.InmueblesDisponibles = listaDisponibles;
         }
         else
         {
             ViewBag.InmueblesDisponibles = null;
         }
 
+        if (actionType != "BuscarInmuebles" && contrato.id_inmueble > 0)
+        {
+            ViewBag.InmueblePreseleccionadoId = contrato.id_inmueble;
+        }
+
         return View(contrato);
     }
-
     [HttpGet]
     public IActionResult Cancelar(int id)
     {
@@ -254,62 +294,62 @@ public IActionResult Editar(int id)
         return View(contrato);
     }
 
-   [HttpPost]
-public IActionResult Editar(Contrato contratoEditado)
-{
-    if (contratoEditado.DuracionEnMeses <= 0)
-    {
-        ModelState.AddModelError("DuracionEnMeses", "La duración en meses debe ser mayor a cero.");
-    }
-    else if (contratoEditado.fecha_inicio.HasValue)
-    {
-        contratoEditado.fecha_fin = contratoEditado.fecha_inicio.Value.AddMonths(contratoEditado.DuracionEnMeses);
-    }
-    
-    if (!contratoEditado.fecha_inicio.HasValue)
-    {
-         ModelState.AddModelError("fecha_inicio", "La fecha de inicio es requerida.");
-    }
-    
-
-    if (ModelState.IsValid)
-    {
-        if (contratoEditado.id_inmueble.HasValue)
-        {
-            var contratosExistentes = _contratoRepo.ObtenerContratoPorInmueble(contratoEditado.id_inmueble.Value, contratoEditado.id);
-            
-            bool haySolapamiento = contratosExistentes.Any(c => contratoEditado.fecha_inicio <= c.fecha_fin && contratoEditado.fecha_fin >= c.fecha_inicio);
-
-            if (haySolapamiento)
-            {
-                ModelState.AddModelError("fecha_fin", "La nueva fecha de finalización se solapa con otro contrato del mismo inmueble.");
-              
-                return RecargarVistaEditar(contratoEditado);
-            }
-        }
-        
-        _contratoRepo.ActualizarContrato(contratoEditado);
-        TempData["Exito"] = "Contrato actualizado con éxito.";
-        return RedirectToAction("Index");
-    }
-
-    return RecargarVistaEditar(contratoEditado);
-}
-
-private IActionResult RecargarVistaEditar(Contrato contrato)
-{
-    if (contrato.id_inquilino.HasValue)
-    {
-        contrato.Inquilino = _inquilinoRepo.ObtenerInquilinoId(contrato.id_inquilino.Value);
-    }
-    if (contrato.id_inmueble.HasValue)
-    {
-        contrato.Inmueble = _inmuebleRepo.ObtenerInmuebleId(contrato.id_inmueble.Value);
-    }
-    return View(contrato);
-}
     [HttpPost]
-    public IActionResult Cancelar(int idContrato, DateTime fechaTerminacion)
+    public IActionResult Editar(Contrato contratoEditado)
+    {
+        if (contratoEditado.DuracionEnMeses <= 0)
+        {
+            ModelState.AddModelError("DuracionEnMeses", "La duración en meses debe ser mayor a cero.");
+        }
+        else if (contratoEditado.fecha_inicio.HasValue)
+        {
+            contratoEditado.fecha_fin = contratoEditado.fecha_inicio.Value.AddMonths(contratoEditado.DuracionEnMeses);
+        }
+
+        if (!contratoEditado.fecha_inicio.HasValue)
+        {
+            ModelState.AddModelError("fecha_inicio", "La fecha de inicio es requerida.");
+        }
+
+
+        if (ModelState.IsValid)
+        {
+            if (contratoEditado.id_inmueble.HasValue)
+            {
+                var contratosExistentes = _contratoRepo.ObtenerContratoPorInmueble(contratoEditado.id_inmueble.Value, contratoEditado.id);
+
+                bool haySolapamiento = contratosExistentes.Any(c => contratoEditado.fecha_inicio <= c.fecha_fin && contratoEditado.fecha_fin >= c.fecha_inicio);
+
+                if (haySolapamiento)
+                {
+                    ModelState.AddModelError("fecha_fin", "La nueva fecha de finalización se solapa con otro contrato del mismo inmueble.");
+
+                    return RecargarVistaEditar(contratoEditado);
+                }
+            }
+
+            _contratoRepo.ActualizarContrato(contratoEditado);
+            TempData["Exito"] = "Contrato actualizado con éxito.";
+            return RedirectToAction("Index");
+        }
+
+        return RecargarVistaEditar(contratoEditado);
+    }
+
+    private IActionResult RecargarVistaEditar(Contrato contrato)
+    {
+        if (contrato.id_inquilino.HasValue)
+        {
+            contrato.Inquilino = _inquilinoRepo.ObtenerInquilinoId(contrato.id_inquilino.Value);
+        }
+        if (contrato.id_inmueble.HasValue)
+        {
+            contrato.Inmueble = _inmuebleRepo.ObtenerInmuebleId(contrato.id_inmueble.Value);
+        }
+        return View(contrato);
+    }
+    [HttpPost]
+    public IActionResult Cancelar(int idContrato, DateTime fechaTerminacion, decimal multaValor)
     {
         var contrato = _contratoRepo.ObtenerContratoId(idContrato);
 
@@ -335,28 +375,28 @@ private IActionResult RecargarVistaEditar(Contrato contrato)
 
         try
         {
-            decimal multaCalculada = CalcularMulta(contrato, fechaTerminacion);
+            decimal multaPura = CalcularMulta(contrato, fechaTerminacion);
 
-            contrato.multa = multaCalculada;
+            contrato.multa = multaPura;
             contrato.fecha_terminacion_anticipada = fechaTerminacion;
-            contrato.estado = 0; 
+            contrato.estado = 0;
 
             _contratoRepo.ActualizarContrato(contrato);
 
             _auditoriaRepo.InsertarRegistroAuditoria(
                 TipoAuditoria.Contrato,
                 contrato.id,
-                AccionAuditoria.Anular, 
+                AccionAuditoria.Anular,
                 User.Identity?.Name ?? "Anónimo"
             );
 
             var nuevoPago = new Pago
             {
                 id_contrato = contrato.id,
-                nro_pago = 999, 
-                fecha_pago = null,
+                nro_pago = 0,
                 estado = EstadoPago.pendiente,
-                concepto = "Multa por rescisión anticipada"
+                concepto = $"Liquidación por Rescisión Anticipada - Fecha de baja: {DateTime.Now.ToString("dd/MM/yyyy")} |",
+                monto = multaValor
             };
 
             _pagoRepo.AgregarPago(nuevoPago);
@@ -373,7 +413,6 @@ private IActionResult RecargarVistaEditar(Contrato contrato)
             return Json(new { success = false, error = $"Error al guardar la cancelación: {ex.Message}" });
         }
     }
-
 
 
     private decimal CalcularMulta(Contrato contrato, DateTime fechaTerminacion)
@@ -471,7 +510,7 @@ private IActionResult RecargarVistaEditar(Contrato contrato)
             decimal montoMensual = contrato.monto_mensual.Value;
             decimal multaCalculada = CalcularMulta(contrato, fecha);
             decimal totalAdeudado = mesesAdeudados * montoMensual;
-
+            decimal liquidacionTotalValor = multaCalculada + totalAdeudado;
             return Json(new
             {
                 success = true,
@@ -479,7 +518,9 @@ private IActionResult RecargarVistaEditar(Contrato contrato)
                 multaValor = multaCalculada,
                 mesesAdeudados = mesesAdeudados,
                 totalAdeudadoTexto = totalAdeudado.ToString("C", new System.Globalization.CultureInfo("es-AR")),
-                totalAdeudadoValor = totalAdeudado
+                totalAdeudadoValor = totalAdeudado,
+                totalLiquidacionTexto = liquidacionTotalValor.ToString("C", new System.Globalization.CultureInfo("es-AR")),
+                totalLiquidacionValor = liquidacionTotalValor
             });
         }
         catch (Exception ex)

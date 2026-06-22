@@ -16,7 +16,6 @@
             <label for="buscarDni">Buscar Inquilino por DNI</label>
             <input type="text" id="buscarDni" class="form-control" placeholder="Ingrese DNI" autocomplete="off" />
             <small id="inquilinoPreview" class="form-text text-muted"></small>
-
             <div id="resultadosDni" class="list-group" 
                  style="position:absolute; z-index:1000; width:100%; max-height:220px; overflow:auto;"></div>
         </div>
@@ -57,32 +56,53 @@
             <input type="text" id="fechaFinDisplay" class="form-control" readonly value="Pendiente..." />
         </div>
 
-        <button type="submit" name="actionType" value="BuscarInmuebles" class="btn btn-info mt-2">
-            Buscar inmuebles disponibles
-        </button>
+        @if (ViewBag.InmueblePreseleccionadoId == null)
+        {
+            <button type="submit" name="actionType" value="BuscarInmuebles" class="btn btn-info mt-2">
+                Buscar inmuebles disponibles
+            </button>
+        }
 
         <hr />
-        @if (ViewBag.InmueblesDisponibles != null &&
-             ((List<_net_integrador.Models.Inmueble>)ViewBag.InmueblesDisponibles).Any())
+
+        @if (ViewBag.InmueblesDisponibles != null && ((List<_net_integrador.Models.Inmueble>)ViewBag.InmueblesDisponibles).Any())
         {
             var inmuebles = (List<_net_integrador.Models.Inmueble>)ViewBag.InmueblesDisponibles;
-            <h4>Seleccione Inmueble</h4>
-            <div class="form-group">
-                <select asp-for="id_inmueble" class="form-control" id="selectInmueble">
-                    <option value="">-- Seleccione Inmueble --</option>
-                    @foreach (var inmueble in inmuebles)
-                    {
-                        <option value="@inmueble.id" data-precio="@inmueble.precio">
-                            Dirección: @inmueble.direccion - Ambientes: @inmueble.ambientes
-                        </option>
-                    }
-                </select>
-                <span asp-validation-for="id_inmueble" class="text-danger"></span>
-            </div>
 
-            <div class="form-group mt-2">
+            <h4>Información del Inmueble</h4>
+
+            @if (ViewBag.InmueblePreseleccionadoId != null)
+            {
+                var idPreseleccionado = (int)ViewBag.InmueblePreseleccionadoId;
+                var inmuebleFijo = inmuebles.FirstOrDefault(i => i.id == idPreseleccionado);
+
+                <div class="form-group mb-3">
+                    <input type="text" class="form-control bg-light" 
+                           value="Dirección: @(inmuebleFijo?.direccion) - Ambientes: @(inmuebleFijo?.ambientes) - Prop: @(inmuebleFijo?.propietario?.apellido) @(inmuebleFijo?.propietario?.nombre)" readonly />
+                    
+                    <input type="hidden" asp-for="id_inmueble" value="@inmuebleFijo?.id" />
+                    <span asp-validation-for="id_inmueble" class="text-danger"></span>
+                </div>
+            }
+            else
+            {
+                <div class="form-group mb-3">
+                    <select asp-for="id_inmueble" class="form-control" id="selectInmueble">
+                        <option value="">-- Seleccione Inmueble --</option>
+                        @foreach (var inmueble in inmuebles)
+                        {
+                            <option value="@inmueble.id" data-precio="@inmueble.precio">
+                                Dirección: @inmueble.direccion - Ambientes: @inmueble.ambientes - Prop: @inmueble.propietario?.apellido @inmueble.propietario?.nombre
+                            </option>
+                        }
+                    </select>
+                    <span asp-validation-for="id_inmueble" class="text-danger"></span>
+                </div>
+            }
+
+            <div class="form-group mb-3">
                 <label for="monto_mensual">Monto Mensual</label>
-                <input asp-for="monto_mensual" id="montoMensual" class="form-control" readonly />
+                <input asp-for="monto_mensual" id="montoMensual" class="form-control bg-light" readonly />
                 <span asp-validation-for="monto_mensual" class="text-danger"></span>
             </div>
 
@@ -109,7 +129,6 @@
             var $selectInmueble = $('#selectInmueble');
             var $montoMensual = $('#montoMensual');
 
-            
             var $buscarDni = $('#buscarDni');
             var $resultados = $('#resultadosDni');
             var $preview = $('#inquilinoPreview');
@@ -145,9 +164,8 @@
                     var nombre = $(this).data('nombre');
 
                     $selectInquilino.val(id);
-                    $preview.text("✅ Seleccionado: " + nombre + " (DNI: " + dni + ")");
+                    $preview.text("Seleccionado: " + nombre + " (DNI: " + dni + ")");
                     $buscarDni.val(dni);
-
                     $resultados.empty();
                 });
             }
@@ -157,17 +175,14 @@
                 $preview.text('');
                 $resultados.empty();
 
-                if (term.length < 3) {
-                    
-                    return;
-                }
+                if (term.length < 3) return;
+
                 $.get('/Contrato/BuscarInquilinoPorDni', { dni: term })
                     .done(function (data) {
                         renderResultados(data);
-
                         if (Array.isArray(data) && data.length === 1 && data[0].dni === term) {
                             $selectInquilino.val(data[0].id);
-                            $preview.text("✅ Seleccionado: " + data[0].nombreCompleto + " (DNI: " + data[0].dni + ")");
+                            $preview.text("Seleccionado: " + data[0].nombreCompleto + " (DNI: " + data[0].dni + ")");
                             $resultados.empty();
                         }
                     })
@@ -186,10 +201,8 @@
 
             function calcularFechaFin() {
                 var inicioStr = $fechaInicio.val();
-
                 var mesesStr = $duracionMeses.val();
                 var meses = parseInt(mesesStr);
-
 
                 if (inicioStr.length === 0 || isNaN(meses) || meses <= 0) {
                     $fechaFinDisplay.val("Ingrese fecha de inicio");
@@ -198,7 +211,6 @@
                 }
 
                 var fecha = new Date(inicioStr + 'T00:00:00');
-
                 if (isNaN(fecha.getTime())) {
                     $fechaFinDisplay.val("Fecha de inicio inválida.");
                     $fechaFinHidden.val('');
@@ -209,26 +221,31 @@
                 var mes = String(fecha.getMonth() + 1).padStart(2, '0');
                 var anio = fecha.getFullYear();
 
-                var fechaFinalDisplay = `${dia}/${mes}/${anio}`;
-                var fechaFinalHidden = `${anio}-${mes}-${dia}`;
-                $fechaFinDisplay.val(fechaFinalDisplay);
-                $fechaFinHidden.val(fechaFinalHidden);
+                $fechaFinDisplay.val(`${dia}/${mes}/${anio}`);
+                $fechaFinHidden.val(`${anio}-${mes}-${dia}`);
             }
 
             function actualizarMontoMensual() {
-                var $selectedOption = $selectInmueble.find('option:selected');
-                var precio = $selectedOption.data('precio');
-                if (precio > 0) {
-                    $montoMensual.val(precio);
-                } else {
-                    $montoMensual.val('');
+                if ($selectInmueble.length > 0) {
+                    var $selectedOption = $selectInmueble.find('option:selected');
+                    var precio = $selectedOption.data('precio');
+                    if (precio > 0) {
+                        $montoMensual.val(precio);
+                    } else {
+                        $montoMensual.val('');
+                    }
                 }
             }
 
-            $selectInmueble && $selectInmueble.on('change', actualizarMontoMensual);
+            if ($selectInmueble.length > 0) {
+                $selectInmueble.on('change', actualizarMontoMensual);
+            }
+            
             $fechaInicio.on('change', calcularFechaFin);
             $duracionMeses.on('input', calcularFechaFin);
+            
             calcularFechaFin();
+            actualizarMontoMensual();
         });
     </script>
 }

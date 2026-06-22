@@ -27,16 +27,37 @@ public class InmuebleController : Controller
         _repositorioTipoInmueble = repositorioTipoInmueble;
     }
 
-    public IActionResult Index()
+    public IActionResult Index(DateTime? fechaInicio, DateTime? fechaFin)
     {
         var listaInmuebles = _repositorioInmueble.ObtenerInmuebles();
+
+        if(fechaInicio.HasValue && fechaFin.HasValue)
+        {
+            ViewBag.FechaInicio = fechaInicio;
+            ViewBag.FechaFin = fechaFin;
+            if(fechaInicio >= fechaFin)
+            {
+                TempData["Error"] = "Rango de fechas inválido. Asegúrese de que ambas fechas estén seleccionadas y que la fecha de inicio no sea posterior a la fecha de fin.";
+                ViewBag.Filtrado = false;
+                listaInmuebles = _repositorioInmueble.ObtenerInmuebles();
+            }
+            else
+            {
+                listaInmuebles = _repositorioInmueble.BuscarDisponiblePorFecha(fechaInicio.Value, fechaFin.Value);
+                ViewBag.Filtrado = true;
+            }
+        }
+        else
+        {
+            listaInmuebles = _repositorioInmueble.ObtenerInmuebles();
+        }
         var propietarios = _repositorioPropietario.ObtenerPropietarios()
             .Where(p => p.estado == 1)
             .Select(p => new {
                 Id = p.id,
                 Nombre = $"{p.nombre} {p.apellido}"
             }).ToList();
-    
+
         ViewBag.Propietarios = new SelectList(propietarios, "Id", "Nombre");
         return View(listaInmuebles);
     }

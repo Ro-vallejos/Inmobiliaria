@@ -24,6 +24,9 @@ namespace _net_integrador.Models
         
         [Display(Name = "Concepto")]
         public string concepto { get; set; } = string.Empty;
+        
+        [Display(Name = "Monto")]
+        public decimal monto { get; set; }
     }
     
     public enum EstadoPago

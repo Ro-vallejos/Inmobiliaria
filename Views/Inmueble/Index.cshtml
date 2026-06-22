@@ -17,10 +17,44 @@
     <h1 class="display-4">Lista de Inmuebles</h1>
 </div>
 
+<div class="card mb-4 bg-light shadow-sm">
+    <div class="card-body">
+        <h5 class="card-title text-secondary"><i class="bi bi-calendar-range"></i> Filtrar por Disponibilidad</h5>
+        <form asp-action="Index" method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label for="fechaInicio" class="form-label font-weight-bold">Fecha de Inicio</label>
+                <input type="date" name="fechaInicio" id="fechaInicio" class="form-control" 
+                       value="@(ViewBag.FechaInicio != null ? ((DateTime)ViewBag.FechaInicio).ToString("yyyy-MM-dd") : "")" />
+            </div>
+            <div class="col-md-4">
+                <label for="fechaFin" class="form-label font-weight-bold">Fecha de Fin</label>
+                <input type="date" name="fechaFin" id="fechaFin" class="form-control" 
+                       value="@(ViewBag.FechaFin != null ? ((DateTime)ViewBag.FechaFin).ToString("yyyy-MM-dd") : "")" />
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    Filtrar Disponibles
+                </button>
+                @if (ViewBag.FechaInicio != null || ViewBag.FechaFin != null)
+                {
+                    <a asp-action="Index" class="btn btn-outline-secondary">Limpiar</a>
+                }
+            </div>
+        </form>
+    </div>
+</div>
+
 <p>
     <a class="btn btn-success" asp-action="Agregar">Agregar Inmueble</a>
     <a asp-action="Index" asp-controller="Home" class="btn btn-secondary">Volver</a>
 </p>
+
+@if (ViewBag.Filtrado == true && !Model.Any())
+{
+    <div class="alert alert-warning text-center shadow-sm">
+        <i class="bi bi-exclamation-triangle"></i> No hay inmuebles disponibles para el rango de fechas seleccionado.
+    </div>
+}
 
 <table class="table table-striped" id="tablaInmuebles">
     <thead>
@@ -67,15 +101,23 @@
                 </td>
                 <td>
                     @Html.ActionLink("Editar", "Editar", new { id = i.id }, new { @class = "btn btn-primary btn-sm" })
-                    @if (i.estado == _net_integrador.Models.Estado.Disponible)
+                    @if (i.estado != _net_integrador.Models.Estado.Suspendido )
                     {
                         @Html.ActionLink(
                             "Suspender",
                             "Suspender",
                             new { id = i.id },
                             new { @class = "btn btn-warning btn-sm", onclick = "return confirm('¿Seguro que querés suspender este inmueble?');" })
+                      
+                        @Html.ActionLink(
+                            "Contrato",
+                            "Agregar",
+                            "Contrato",
+                            new { idInmueble = i.id },
+                            new { @class = "btn btn-success btn-sm" })
+                            
                     }
-                    else if (i.estado == _net_integrador.Models.Estado.Suspendido)
+                    else 
                     {
                         @Html.ActionLink(
                             "Activar",
@@ -83,6 +125,7 @@
                             new { id = i.id },
                             new { @class = "btn btn-success btn-sm", onclick = "return confirm('¿Seguro que querés activar este inmueble?');" })
                     }
+                    
                 </td>
             </tr>
         }

@@ -1,0 +1,56 @@
+@model _net_integrador.Models.Pago
+
+@{
+    ViewData["Title"] = "Editar Pago";
+}
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header">
+            <h4> Editar Registro de Pago</h4>
+        </div>
+        <div class="card-body">
+            <form asp-action="Editar" method="post">
+                <input type="hidden" asp-for="id" />
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label font-weight-bold">Contrato Asociado</label>
+                        <input class="form-control" value="Contrato N° @Model.id_contrato" disabled />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label font-weight-bold">Período Correspondiente</label>
+                        <input class="form-control" value="@ViewBag.NombreMesDisplay (Mes N° @Model.nro_pago)" disabled />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label font-weight-bold">Fecha de Registro Original</label>
+                        <input class="form-control" value="@Model.fecha_pago?.ToString("dd/MM/yyyy HH:mm")" disabled />
+                    </div>
+                </div>
+                <input type="hidden" asp-for="id" /> <div class="mb-3">
+                        <label class="form-label font-weight-bold">Concepto Base (No modificable)</label>
+                        <input class="form-control" value="@ViewBag.ConceptoFijo" disabled />
+                        <small class="text-muted">Este encabezado se conserva automáticamente.</small>
+                    </div>
+                <div class="mb-3">
+                    <label for="detalleAdicional" class="form-label font-weight-bold">Concepto / Notas adicionales del Pago</label>
+                    <textarea name="detalleAdicional" id="detalleAdicional" class="form-control" rows="3" placeholder="Ej: Abonado por transferencia...">@ViewBag.DetalleEditable</textarea>
+                    <span for="detalleAdicional" class="text-danger"></span>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a asp-action="Index" asp-route-ContratoId="@Model.id_contrato" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Volver al Listado
+                    </a>
+                    <button type="submit" class="btn btn-primary btn-sm">
+                         Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

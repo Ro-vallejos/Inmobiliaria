@@ -13,7 +13,6 @@ namespace _net_integrador.Repositorios
         bool ActivarOferta(int id);
         List<Inmueble> ObtenerInmueblesDisponibles();
         List<Inmueble> ObtenerInmueblesPorPropietario(int propietarioId);
-        void MarcarComoAlquilado(int id);
         List <Inmueble> BuscarDisponiblePorFecha(DateTime fechaDesde, DateTime fechaHasta);
     }
 }
