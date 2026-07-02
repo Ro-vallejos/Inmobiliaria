@@ -28,14 +28,9 @@
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label font-weight-bold">Fecha de Registro Original</label>
-                        <input class="form-control" value="@Model.fecha_pago?.ToString("dd/MM/yyyy HH:mm")" disabled />
+                        <input class="form-control" value="@Model.fecha_pago?.ToString("dd/MM/yyyy")" disabled />
                     </div>
                 </div>
-                <input type="hidden" asp-for="id" /> <div class="mb-3">
-                        <label class="form-label font-weight-bold">Concepto Base (No modificable)</label>
-                        <input class="form-control" value="@ViewBag.ConceptoFijo" disabled />
-                        <small class="text-muted">Este encabezado se conserva automáticamente.</small>
-                    </div>
                 <div class="mb-3">
                     <label for="detalleAdicional" class="form-label font-weight-bold">Concepto / Notas adicionales del Pago</label>
                     <textarea name="detalleAdicional" id="detalleAdicional" class="form-control" rows="3" placeholder="Ej: Abonado por transferencia...">@ViewBag.DetalleEditable</textarea>

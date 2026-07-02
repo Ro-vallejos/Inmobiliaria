@@ -5,13 +5,6 @@
     var propietarioIdSeleccionado = ViewBag.PropietarioId as int?;
 }
 
-@if (TempData["Exito"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        @TempData["Exito"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-}
 
 <div class="text-center">
     <h1 class="display-4">Lista de Inmuebles</h1>

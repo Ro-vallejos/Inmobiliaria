@@ -73,6 +73,7 @@ public class ContratoController : Controller
     public IActionResult Agregar(int? idInmueble)
     {
         var inquilinos = _inquilinoRepo.ObtenerInquilinos()
+            .Where(i => i.estado != 0)
             .Select(i => new SelectListItem { Value = i.id.ToString(), Text = i.NombreCompleto })
             .ToList();
 

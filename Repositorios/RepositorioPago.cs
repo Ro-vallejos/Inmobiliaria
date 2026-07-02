@@ -116,11 +116,11 @@ public class RepositorioPago : RepositorioBase, IRepositorioPago
 
 
 
-    public void AgregarPago(Pago pago)
+    public int AgregarPago(Pago pago)
     {
         using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
-            var sql = "INSERT INTO pago (id_contrato, nro_pago, fecha_pago, estado, concepto, monto) VALUES (@id_contrato, @nro_pago, @fecha_pago, @estado, @concepto, @monto)";
+            var sql = "INSERT INTO pago (id_contrato, nro_pago, fecha_pago, estado, concepto, monto) VALUES (@id_contrato, @nro_pago, @fecha_pago, @estado, @concepto, @monto); SELECT LAST_INSERT_ID();";
             using (MySqlCommand command = new MySqlCommand(sql, connection))
             {
                 connection.Open();
@@ -130,8 +130,11 @@ public class RepositorioPago : RepositorioBase, IRepositorioPago
                 command.Parameters.AddWithValue("@estado", pago.estado.ToString());
                 command.Parameters.AddWithValue("@concepto", pago.concepto);
                 command.Parameters.AddWithValue("@monto", pago.monto);
-                command.ExecuteNonQuery();
-                connection.Close();
+
+                var idGenerado = Convert.ToInt32(command.ExecuteScalar());
+                pago.id = idGenerado;
+                
+                return idGenerado;
             }
         }
     }

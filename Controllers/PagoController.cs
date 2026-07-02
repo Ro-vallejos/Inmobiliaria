@@ -26,7 +26,9 @@ public class PagoController : Controller
     public IActionResult Index(int contratoId)
     {
         var listaPagos = _pagoRepo.ObtenerPagosPorContrato(contratoId);
+        var contrato = _contratoRepo.ObtenerContratoId(contratoId);
         ViewBag.ContratoId = contratoId;
+        ViewBag.ContratoEstado = contrato != null ? contrato.estado : 0;
         return View(listaPagos);
     }
 
@@ -48,7 +50,7 @@ public class PagoController : Controller
 
         var estadoAnterior = pago.estado.ToString();
         pago.estado = EstadoPago.recibido;
-        pago.fecha_pago = DateTime.Now; 
+        pago.fecha_pago = DateTime.Now;
         _pagoRepo.ActualizarPago(pago);
 
         _auditoriaRepo.InsertarRegistroAuditoria(
@@ -79,8 +81,20 @@ public class PagoController : Controller
         }
 
         var estadoAnterior = pago.estado.ToString();
-        pago.estado = EstadoPago.anulado;
-        pago.fecha_pago = DateTime.Now; // Se establece la fecha de anulación
+
+        if (pago.nro_pago == 0)
+        {
+            pago.estado = EstadoPago.pendiente;
+            pago.fecha_pago = null;
+            TempData["Exito"] = "El cobro de la multa fue revertido. Ya podés volver a registrar el pago.";
+        }
+        else
+        {
+            pago.estado = EstadoPago.anulado;
+            pago.fecha_pago = DateTime.Now;
+            TempData["Exito"] = "Pago del alquiler anulado con éxito.";
+        }
+
         _pagoRepo.ActualizarPago(pago);
 
         _auditoriaRepo.InsertarRegistroAuditoria(
@@ -90,7 +104,6 @@ public class PagoController : Controller
             User.Identity.Name ?? "Anónimo"
         );
 
-        TempData["Exito"] = "Pago anulado con éxito";
         return RedirectToAction("Index", new { contratoId = pago.id_contrato });
     }
     [HttpGet]
@@ -100,6 +113,10 @@ public class PagoController : Controller
         if (contrato == null)
         {
             TempData["Error"] = "El contrato especificado no existe.";
+            return RedirectToAction("Index", "Contrato");
+        }
+        if (contrato.estado == 0)
+        {
             return RedirectToAction("Index", "Contrato");
         }
         List<int> cuotasPagas = _pagoRepo.ContarMesesPagados(idContrato);
@@ -129,7 +146,7 @@ public class PagoController : Controller
                 });
             }
         }
-         
+
 
         ViewBag.Contrato = contrato;
         ViewBag.SlotsFaltantes = slotsFaltantes;
@@ -140,8 +157,8 @@ public class PagoController : Controller
     public IActionResult RegistrarPago(int idContrato, List<int> mesesSeleccionados, string detalleAdicional)
     {
         var contrato = _contratoRepo.ObtenerContratoId(idContrato);
-        if (contrato == null) return RedirectToAction("Index", "Contrato");
-
+        if (contrato != null && contrato.estado == 0) return RedirectToAction("Index", "Contrato");
+        var montoMensual = contrato.monto_mensual ?? 0;
 
         DateTime fechaBase = contrato.fecha_inicio ?? DateTime.Now;
 
@@ -168,13 +185,14 @@ public class PagoController : Controller
                 nro_pago = nroMes,
                 fecha_pago = DateTime.Now,
                 concepto = conceptoMes,
-                estado = EstadoPago.recibido
+                estado = EstadoPago.recibido,
+                monto = montoMensual
             };
 
-            _pagoRepo.AgregarPago(nuevoPago);
+            var pagoId = _pagoRepo.AgregarPago(nuevoPago);
             _auditoriaRepo.InsertarRegistroAuditoria(
             TipoAuditoria.Pago,
-            nuevoPago.id,
+            pagoId,
             AccionAuditoria.Recibir,
             User.Identity.Name ?? "Anónimo"
         );
@@ -194,10 +212,10 @@ public class PagoController : Controller
         }
 
         var contrato = _contratoRepo.ObtenerContratoId(pago.id_contrato);
-        string conceptoFijo = pago.concepto; 
+        string conceptoFijo = pago.concepto;
         string detalleEditable = "";
 
-        if(pago.concepto != null && pago.concepto.Contains('|'))
+        if (pago.concepto != null && pago.concepto.Contains('|'))
         {
             int indice = pago.concepto.IndexOf('|');
             conceptoFijo = pago.concepto.Substring(0, indice);
@@ -230,15 +248,15 @@ public class PagoController : Controller
         if (pagoOriginal.concepto != null && pagoOriginal.concepto.Contains("|"))
         {
             int indiceGuion = pagoOriginal.concepto.IndexOf("|");
-            conceptoFijo = pagoOriginal.concepto.Substring(0, indiceGuion); 
+            conceptoFijo = pagoOriginal.concepto.Substring(0, indiceGuion);
         }
         if (pagoOriginal.nro_pago > 0)
         {
-            pagoOriginal.concepto = conceptoFijo; 
-            
+            pagoOriginal.concepto = conceptoFijo;
+
             if (!string.IsNullOrWhiteSpace(detalleAdicional))
             {
-                pagoOriginal.concepto += $" | {detalleAdicional}"; 
+                pagoOriginal.concepto += $" | {detalleAdicional}";
             }
         }
         else
